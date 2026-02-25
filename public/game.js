@@ -1,6 +1,7 @@
 // Game state
 var timeRemaining = 1.000;
 var maxTime = 1.000;
+var taps = 0;
 var score = 0;
 var isRunning = false;
 var lastFrameTime = 0;
@@ -11,6 +12,15 @@ var goods = 0;
 var fines = 0;
 var poors = 0;
 var bads = 0;
+// Point values
+var POINTS = {
+    perfect: 500,
+    great: 50,
+    good: 25,
+    fine: 10,
+    poor: 5,
+    bad: 0
+};
 // Player data
 var currentInitials = ['A', 'A', 'A'];
 var deviceType = 'desktop';
@@ -30,6 +40,7 @@ var timerDisplay = document.getElementById('timer');
 var scoreDisplay = document.getElementById('score');
 // DOM elements - Game over
 var finalScoreDisplay = document.getElementById('final-score');
+var finalTapsDisplay = document.getElementById('final-taps');
 var tierBreakdown = document.getElementById('tier-breakdown');
 var initialSlots = document.querySelectorAll('.initial-slot');
 var arrowButtons = document.querySelectorAll('.arrow-btn');
@@ -93,31 +104,38 @@ function showInstructions() {
     leaderboardScreen.classList.add('hidden');
     instructionsPopup.classList.remove('hidden');
 }
-// Classify a point based on remaining time
+// Classify a point based on remaining time and add points
 function classifyPoint(remaining) {
     if (remaining <= 0.005) {
         perfects++;
+        score += POINTS.perfect;
     }
     else if (remaining <= 0.050) {
         greats++;
+        score += POINTS.great;
     }
     else if (remaining <= 0.100) {
         goods++;
+        score += POINTS.good;
     }
     else if (remaining <= 0.200) {
         fines++;
+        score += POINTS.fine;
     }
     else if (remaining <= 0.350) {
         poors++;
+        score += POINTS.poor;
     }
     else if (remaining <= 0.500) {
         bads++;
+        score += POINTS.bad;
     }
 }
 // Reset game state
 function resetGame() {
     timeRemaining = 1.000;
     maxTime = 1.000;
+    taps = 0;
     score = 0;
     perfects = 0;
     greats = 0;
@@ -166,7 +184,7 @@ function handleGameplayTap(e) {
     if (!isRunning)
         return;
     e.preventDefault();
-    score++;
+    taps++;
     classifyPoint(timeRemaining);
     // Subtract remaining time from maxTime (accumulate debt)
     maxTime = maxTime - timeRemaining;
@@ -178,7 +196,13 @@ function handleGameplayTap(e) {
 // End the game and show game over screen
 function endGame() {
     finalScoreDisplay.textContent = score.toString();
-    tierBreakdown.innerHTML = "\n        <div>PERFECT (\u22640.005): ".concat(perfects, "</div>\n        <div>GREAT (\u22640.050): ").concat(greats, "</div>\n        <div>GOOD (\u22640.100): ").concat(goods, "</div>\n        <div>FINE (\u22640.200): ").concat(fines, "</div>\n        <div>POOR (\u22640.350): ").concat(poors, "</div>\n        <div>BAD (\u22640.500): ").concat(bads, "</div>\n    ");
+    finalTapsDisplay.textContent = taps.toString();
+    tierBreakdown.innerHTML = "\n        <div>PERFECT (\u22640.005): ".concat(perfects, " \u00D7 ").concat(POINTS.perfect, " = ").concat(perfects * POINTS.perfect, "</div>\n        <div>GREAT (\u22640.050): ").concat(greats, " \u00D7 ").concat(POINTS.great, " = ").concat(greats * POINTS.great, "</div>\n        <div>GOOD (\u22640.100): ").concat(goods, " \u00D7 ").concat(POINTS.good, " = ").concat(goods * POINTS.good, "</div>\n        <div>FINE (\u22640.200): ").concat(fines, " \u00D7 ").concat(POINTS.fine, " = ").concat(fines * POINTS.fine, "</div>\n        <div>POOR (\u22640.350): ").concat(poors, " \u00D7 ").concat(POINTS.poor, " = ").concat(poors * POINTS.poor, "</div>\n        <div>BAD (\u22640.500): ").concat(bads, " \u00D7 ").concat(POINTS.bad, " = ").concat(bads * POINTS.bad, "</div>\n    ");
+    // Disable submit button for 0.5 seconds
+    submitButton.disabled = true;
+    setTimeout(function () {
+        submitButton.disabled = false;
+    }, 500);
     showScreen(gameoverScreen);
 }
 // Cycle initial letter up (A→B→C...→Z→A)
@@ -220,7 +244,8 @@ function submitScore() {
         userId: userId,
         initials: currentInitials.join(''),
         device: deviceType,
-        totalPoints: score,
+        taps: taps,
+        score: score,
         perfects: perfects,
         greats: greats,
         goods: goods,
@@ -237,7 +262,7 @@ function submitScore() {
 function showLeaderboard() {
     // TODO: Fetch from Supabase
     // For now, show placeholder
-    leaderboardList.innerHTML = "\n        <div class=\"leaderboard-row\">\n            <span class=\"leaderboard-rank\">1</span>\n            <span class=\"leaderboard-initials\">".concat(currentInitials.join(''), "</span>\n            <span class=\"leaderboard-device\">").concat(deviceType === 'mobile' ? '📱' : '🖥️', "</span>\n            <span class=\"leaderboard-points\">").concat(score, "</span>\n            <span class=\"leaderboard-perfects\">").concat(perfects, "</span>\n            <span class=\"leaderboard-greats\">").concat(greats, "</span>\n        </div>\n    ");
+    leaderboardList.innerHTML = "\n        <div class=\"leaderboard-row\">\n            <span class=\"leaderboard-rank\">1</span>\n            <span class=\"leaderboard-initials\">".concat(currentInitials.join(''), "</span>\n            <span class=\"leaderboard-device\">").concat(deviceType === 'mobile' ? '📱' : '🖥️', "</span>\n            <span class=\"leaderboard-points\">").concat(score, "</span>\n            <span class=\"leaderboard-taps\">").concat(taps, "</span>\n        </div>\n    ");
     showScreen(leaderboardScreen);
 }
 // Initialize when DOM is ready

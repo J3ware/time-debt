@@ -1,6 +1,7 @@
 // Game state
 let timeRemaining: number = 1.000;
 let maxTime: number = 1.000;
+let taps: number = 0;
 let score: number = 0;
 let isRunning: boolean = false;
 let lastFrameTime: number = 0;
@@ -12,6 +13,16 @@ let goods: number = 0;
 let fines: number = 0;
 let poors: number = 0;
 let bads: number = 0;
+
+// Point values
+const POINTS = {
+    perfect: 500,
+    great: 50,
+    good: 25,
+    fine: 10,
+    poor: 5,
+    bad: 0
+};
 
 // Player data
 let currentInitials: string[] = ['A', 'A', 'A'];
@@ -37,10 +48,11 @@ const scoreDisplay = document.getElementById('score') as HTMLElement;
 
 // DOM elements - Game over
 const finalScoreDisplay = document.getElementById('final-score') as HTMLElement;
+const finalTapsDisplay = document.getElementById('final-taps') as HTMLElement;
 const tierBreakdown = document.getElementById('tier-breakdown') as HTMLElement;
 const initialSlots = document.querySelectorAll('.initial-slot');
 const arrowButtons = document.querySelectorAll('.arrow-btn');
-const submitButton = document.getElementById('submit-button') as HTMLElement;
+const submitButton = document.getElementById('submit-button') as HTMLButtonElement;
 
 // DOM elements - Leaderboard
 const leaderboardList = document.getElementById('leaderboard-list') as HTMLElement;
@@ -108,20 +120,26 @@ function showInstructions(): void {
     instructionsPopup.classList.remove('hidden');
 }
 
-// Classify a point based on remaining time
+// Classify a point based on remaining time and add points
 function classifyPoint(remaining: number): void {
     if (remaining <= 0.005) {
         perfects++;
+        score += POINTS.perfect;
     } else if (remaining <= 0.050) {
         greats++;
+        score += POINTS.great;
     } else if (remaining <= 0.100) {
         goods++;
+        score += POINTS.good;
     } else if (remaining <= 0.200) {
         fines++;
+        score += POINTS.fine;
     } else if (remaining <= 0.350) {
         poors++;
+        score += POINTS.poor;
     } else if (remaining <= 0.500) {
         bads++;
+        score += POINTS.bad;
     }
 }
 
@@ -129,6 +147,7 @@ function classifyPoint(remaining: number): void {
 function resetGame(): void {
     timeRemaining = 1.000;
     maxTime = 1.000;
+    taps = 0;
     score = 0;
     perfects = 0;
     greats = 0;
@@ -185,7 +204,7 @@ function handleGameplayTap(e: Event): void {
     if (!isRunning) return;
     e.preventDefault();
 
-    score++;
+    taps++;
     classifyPoint(timeRemaining);
     
     // Subtract remaining time from maxTime (accumulate debt)
@@ -200,14 +219,22 @@ function handleGameplayTap(e: Event): void {
 // End the game and show game over screen
 function endGame(): void {
     finalScoreDisplay.textContent = score.toString();
+    finalTapsDisplay.textContent = taps.toString();
     tierBreakdown.innerHTML = `
-        <div>PERFECT (≤0.005): ${perfects}</div>
-        <div>GREAT (≤0.050): ${greats}</div>
-        <div>GOOD (≤0.100): ${goods}</div>
-        <div>FINE (≤0.200): ${fines}</div>
-        <div>POOR (≤0.350): ${poors}</div>
-        <div>BAD (≤0.500): ${bads}</div>
+        <div>PERFECT (≤0.005): ${perfects} × ${POINTS.perfect} = ${perfects * POINTS.perfect}</div>
+        <div>GREAT (≤0.050): ${greats} × ${POINTS.great} = ${greats * POINTS.great}</div>
+        <div>GOOD (≤0.100): ${goods} × ${POINTS.good} = ${goods * POINTS.good}</div>
+        <div>FINE (≤0.200): ${fines} × ${POINTS.fine} = ${fines * POINTS.fine}</div>
+        <div>POOR (≤0.350): ${poors} × ${POINTS.poor} = ${poors * POINTS.poor}</div>
+        <div>BAD (≤0.500): ${bads} × ${POINTS.bad} = ${bads * POINTS.bad}</div>
     `;
+    
+    // Disable submit button for 0.5 seconds
+    submitButton.disabled = true;
+    setTimeout(() => {
+        submitButton.disabled = false;
+    }, 500);
+    
     showScreen(gameoverScreen);
 }
 
@@ -249,7 +276,8 @@ function submitScore(): void {
         userId: userId,
         initials: currentInitials.join(''),
         device: deviceType,
-        totalPoints: score,
+        taps: taps,
+        score: score,
         perfects: perfects,
         greats: greats,
         goods: goods,
@@ -276,8 +304,7 @@ function showLeaderboard(): void {
             <span class="leaderboard-initials">${currentInitials.join('')}</span>
             <span class="leaderboard-device">${deviceType === 'mobile' ? '📱' : '🖥️'}</span>
             <span class="leaderboard-points">${score}</span>
-            <span class="leaderboard-perfects">${perfects}</span>
-            <span class="leaderboard-greats">${greats}</span>
+            <span class="leaderboard-taps">${taps}</span>
         </div>
     `;
     showScreen(leaderboardScreen);
