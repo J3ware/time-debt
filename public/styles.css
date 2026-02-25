@@ -505,3 +505,21 @@ body {
         padding: 2vh 8vw;
     }
 }
+
+/* Personal best message */
+#personal-best-message {
+    font-size: 1rem;
+    color: #0f0;
+    margin-bottom: 2vh;
+    text-align: center;
+}
+
+#personal-best-message.hidden {
+    display: none;
+}
+
+@media (max-width: 600px) {
+    #personal-best-message {
+        font-size: 4vw;
+    }
+}

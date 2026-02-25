@@ -1,19 +1,20 @@
+"use strict";
 // Game state
-var timeRemaining = 1.000;
-var maxTime = 1.000;
-var taps = 0;
-var score = 0;
-var isRunning = false;
-var lastFrameTime = 0;
+let timeRemaining = 1.000;
+let maxTime = 1.000;
+let taps = 0;
+let score = 0;
+let isRunning = false;
+let lastFrameTime = 0;
 // Score tiers
-var perfects = 0;
-var greats = 0;
-var goods = 0;
-var fines = 0;
-var poors = 0;
-var bads = 0;
+let perfects = 0;
+let greats = 0;
+let goods = 0;
+let fines = 0;
+let poors = 0;
+let bads = 0;
 // Point values
-var POINTS = {
+const POINTS = {
     perfect: 500,
     great: 50,
     good: 25,
@@ -22,40 +23,69 @@ var POINTS = {
     bad: 0
 };
 // Player data
-var currentInitials = ['A', 'A', 'A'];
-var deviceType = 'desktop';
-var userId = '';
+let currentInitials = ['A', 'A', 'A'];
+let deviceType = 'desktop';
+let userId = '';
 // DOM elements - Screens
-var instructionsPopup = document.getElementById('instructions-popup');
-var startScreen = document.getElementById('start-screen');
-var gameplayScreen = document.getElementById('gameplay-screen');
-var gameoverScreen = document.getElementById('gameover-screen');
-var leaderboardScreen = document.getElementById('leaderboard-screen');
+const instructionsPopup = document.getElementById('instructions-popup');
+const startScreen = document.getElementById('start-screen');
+const gameplayScreen = document.getElementById('gameplay-screen');
+const gameoverScreen = document.getElementById('gameover-screen');
+const leaderboardScreen = document.getElementById('leaderboard-screen');
 // DOM elements - Instructions
-var gotItButton = document.getElementById('got-it-button');
+const gotItButton = document.getElementById('got-it-button');
 // DOM elements - Start screen
-var startButton = document.getElementById('start-button');
+const startButton = document.getElementById('start-button');
 // DOM elements - Gameplay
-var timerDisplay = document.getElementById('timer');
-var scoreDisplay = document.getElementById('score');
+const timerDisplay = document.getElementById('timer');
+const scoreDisplay = document.getElementById('score');
 // DOM elements - Game over
-var finalScoreDisplay = document.getElementById('final-score');
-var finalTapsDisplay = document.getElementById('final-taps');
-var tierBreakdown = document.getElementById('tier-breakdown');
-var initialSlots = document.querySelectorAll('.initial-slot');
-var arrowButtons = document.querySelectorAll('.arrow-btn');
-var submitButton = document.getElementById('submit-button');
+const finalScoreDisplay = document.getElementById('final-score');
+const finalTapsDisplay = document.getElementById('final-taps');
+const tierBreakdown = document.getElementById('tier-breakdown');
+const initialSlots = document.querySelectorAll('.initial-slot');
+const arrowButtons = document.querySelectorAll('.arrow-btn');
+const submitButton = document.getElementById('submit-button');
+const initialsSection = document.getElementById('initials-submit-row');
+const newGameOnlyButton = document.getElementById('newgame-only-button');
+const personalBestMessage = document.getElementById('personal-best-message');
 // DOM elements - Leaderboard
-var leaderboardList = document.getElementById('leaderboard-list');
-var newGameButton = document.getElementById('newgame-button');
+const leaderboardList = document.getElementById('leaderboard-list');
+const newGameButton = document.getElementById('newgame-button');
+// Get current month key (e.g., "2026-02")
+function getCurrentMonthKey() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+// Get monthly personal best
+function getMonthlyBest() {
+    const monthKey = getCurrentMonthKey();
+    const stored = localStorage.getItem(`timedebt_best_${monthKey}`);
+    return stored ? parseInt(stored, 10) : 0;
+}
+// Set monthly personal best
+function setMonthlyBest(newScore) {
+    const monthKey = getCurrentMonthKey();
+    localStorage.setItem(`timedebt_best_${monthKey}`, newScore.toString());
+}
+// Check if user has already submitted this month
+function hasSubmittedThisMonth() {
+    const monthKey = getCurrentMonthKey();
+    return localStorage.getItem(`timedebt_submitted_${monthKey}`) === 'true';
+}
+// Mark that user has submitted this month
+function markSubmittedThisMonth() {
+    const monthKey = getCurrentMonthKey();
+    localStorage.setItem(`timedebt_submitted_${monthKey}`, 'true');
+}
 // Detect device type
 function detectDevice() {
-    var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     deviceType = isMobile ? 'mobile' : 'desktop';
 }
 // Generate or retrieve user ID
 function initUserId() {
-    var stored = localStorage.getItem('timedebt_userid');
+    const stored = localStorage.getItem('timedebt_userid');
     if (stored) {
         userId = stored;
     }
@@ -66,10 +96,10 @@ function initUserId() {
 }
 // Load saved initials
 function loadInitials() {
-    var stored = localStorage.getItem('timedebt_initials');
+    const stored = localStorage.getItem('timedebt_initials');
     if (stored) {
         currentInitials = stored.split('');
-        initialSlots.forEach(function (slot, index) {
+        initialSlots.forEach((slot, index) => {
             var _a;
             slot.textContent = (_a = currentInitials[index]) !== null && _a !== void 0 ? _a : 'A';
         });
@@ -158,7 +188,7 @@ function gameLoop(currentTime) {
     if (lastFrameTime === 0) {
         lastFrameTime = currentTime;
     }
-    var deltaTime = (currentTime - lastFrameTime) / 1000;
+    const deltaTime = (currentTime - lastFrameTime) / 1000;
     lastFrameTime = currentTime;
     timeRemaining -= deltaTime;
     if (timeRemaining <= 0) {
@@ -197,18 +227,52 @@ function handleGameplayTap(e) {
 function endGame() {
     finalScoreDisplay.textContent = score.toString();
     finalTapsDisplay.textContent = taps.toString();
-    tierBreakdown.innerHTML = "\n        <div>PERFECT: ".concat(perfects, "<span class=\"points-math\"> \u00D7 ").concat(POINTS.perfect, "</span> = ").concat(perfects * POINTS.perfect, "</div>\n        <div>GREAT: ").concat(greats, "<span class=\"points-math\"> \u00D7 ").concat(POINTS.great, "</span> = ").concat(greats * POINTS.great, "</div>\n        <div>GOOD: ").concat(goods, "<span class=\"points-math\"> \u00D7 ").concat(POINTS.good, "</span> = ").concat(goods * POINTS.good, "</div>\n        <div>FINE: ").concat(fines, "<span class=\"points-math\"> \u00D7 ").concat(POINTS.fine, "</span> = ").concat(fines * POINTS.fine, "</div>\n        <div>POOR: ").concat(poors, "<span class=\"points-math\"> \u00D7 ").concat(POINTS.poor, "</span> = ").concat(poors * POINTS.poor, "</div>\n        <div>BAD: ").concat(bads, "<span class=\"points-math\"> \u00D7 ").concat(POINTS.bad, "</span> = ").concat(bads * POINTS.bad, "</div>\n    ");
-    // Disable submit button for 0.5 seconds
-    submitButton.disabled = true;
-    setTimeout(function () {
-        submitButton.disabled = false;
-    }, 500);
+    tierBreakdown.innerHTML = `
+        <div>PERFECT: ${perfects}<span class="points-math"> × ${POINTS.perfect}</span> = ${perfects * POINTS.perfect}</div>
+        <div>GREAT: ${greats}<span class="points-math"> × ${POINTS.great}</span> = ${greats * POINTS.great}</div>
+        <div>GOOD: ${goods}<span class="points-math"> × ${POINTS.good}</span> = ${goods * POINTS.good}</div>
+        <div>FINE: ${fines}<span class="points-math"> × ${POINTS.fine}</span> = ${fines * POINTS.fine}</div>
+        <div>POOR: ${poors}<span class="points-math"> × ${POINTS.poor}</span> = ${poors * POINTS.poor}</div>
+        <div>BAD: ${bads}<span class="points-math"> × ${POINTS.bad}</span> = ${bads * POINTS.bad}</div>
+    `;
+    const monthlyBest = getMonthlyBest();
+    const isNewBest = score > monthlyBest;
+    const alreadySubmitted = hasSubmittedThisMonth();
+    if (isNewBest && !alreadySubmitted) {
+        // Show initials and submit
+        initialsSection.classList.remove('hidden');
+        newGameOnlyButton.classList.add('hidden');
+        personalBestMessage.textContent = 'NEW PERSONAL BEST!';
+        personalBestMessage.classList.remove('hidden');
+        // Disable submit button for 0.5 seconds
+        submitButton.disabled = true;
+        setTimeout(() => {
+            submitButton.disabled = false;
+        }, 500);
+    }
+    else {
+        // Show only new game button
+        initialsSection.classList.add('hidden');
+        newGameOnlyButton.classList.remove('hidden');
+        if (alreadySubmitted) {
+            personalBestMessage.textContent = `ALREADY SUBMITTED (BEST: ${monthlyBest})`;
+        }
+        else {
+            personalBestMessage.textContent = `PERSONAL BEST: ${monthlyBest}`;
+        }
+        personalBestMessage.classList.remove('hidden');
+        // Disable new game button for 1 second
+        newGameOnlyButton.disabled = true;
+        setTimeout(() => {
+            newGameOnlyButton.disabled = false;
+        }, 1000);
+    }
     showScreen(gameoverScreen);
 }
 // Cycle initial letter up (A→B→C...→Z→A)
 function cycleInitialUp(index) {
     var _a;
-    var char = (_a = currentInitials[index]) !== null && _a !== void 0 ? _a : 'A';
+    let char = (_a = currentInitials[index]) !== null && _a !== void 0 ? _a : 'A';
     if (char === 'Z') {
         char = 'A';
     }
@@ -216,7 +280,7 @@ function cycleInitialUp(index) {
         char = String.fromCharCode(char.charCodeAt(0) + 1);
     }
     currentInitials[index] = char;
-    var slot = initialSlots[index];
+    const slot = initialSlots[index];
     if (slot) {
         slot.textContent = char;
     }
@@ -224,7 +288,7 @@ function cycleInitialUp(index) {
 // Cycle initial letter down (A→Z→Y...→B→A)
 function cycleInitialDown(index) {
     var _a;
-    var char = (_a = currentInitials[index]) !== null && _a !== void 0 ? _a : 'A';
+    let char = (_a = currentInitials[index]) !== null && _a !== void 0 ? _a : 'A';
     if (char === 'A') {
         char = 'Z';
     }
@@ -232,15 +296,17 @@ function cycleInitialDown(index) {
         char = String.fromCharCode(char.charCodeAt(0) - 1);
     }
     currentInitials[index] = char;
-    var slot = initialSlots[index];
+    const slot = initialSlots[index];
     if (slot) {
         slot.textContent = char;
     }
 }
-// Submit score (placeholder for Supabase integration)
+// Submit score
 function submitScore() {
     saveInitials();
-    var scoreData = {
+    setMonthlyBest(score);
+    markSubmittedThisMonth();
+    const scoreData = {
         userId: userId,
         initials: currentInitials.join(''),
         device: deviceType,
@@ -262,24 +328,32 @@ function submitScore() {
 function showLeaderboard() {
     // TODO: Fetch from Supabase
     // For now, show placeholder
-    leaderboardList.innerHTML = "\n        <div class=\"leaderboard-row\">\n            <span class=\"leaderboard-rank\">1</span>\n            <span class=\"leaderboard-initials\">".concat(currentInitials.join(''), "</span>\n            <span class=\"leaderboard-device\">").concat(deviceType === 'mobile' ? '📱' : '🖥️', "</span>\n            <span class=\"leaderboard-points\">").concat(score, "</span>\n            <span class=\"leaderboard-taps\">").concat(taps, "</span>\n        </div>\n    ");
+    leaderboardList.innerHTML = `
+        <div class="leaderboard-row">
+            <span class="leaderboard-rank">1</span>
+            <span class="leaderboard-initials">${currentInitials.join('')}</span>
+            <span class="leaderboard-device">${deviceType === 'mobile' ? '📱' : '🖥️'}</span>
+            <span class="leaderboard-points">${score}</span>
+            <span class="leaderboard-taps">${taps}</span>
+        </div>
+    `;
     showScreen(leaderboardScreen);
 }
 // Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
     // Event listeners
-    gotItButton.addEventListener('click', function () {
+    gotItButton.addEventListener('click', () => {
         markInstructionsSeen();
         showScreen(startScreen);
     });
     startButton.addEventListener('click', startGame);
     gameplayScreen.addEventListener('click', handleGameplayTap);
     gameplayScreen.addEventListener('touchstart', handleGameplayTap);
-    arrowButtons.forEach(function (btn) {
-        btn.addEventListener('click', function (e) {
+    arrowButtons.forEach((btn) => {
+        btn.addEventListener('click', (e) => {
             var _a;
             e.preventDefault();
-            var index = parseInt((_a = btn.getAttribute('data-index')) !== null && _a !== void 0 ? _a : '0');
+            const index = parseInt((_a = btn.getAttribute('data-index')) !== null && _a !== void 0 ? _a : '0');
             if (btn.classList.contains('up')) {
                 cycleInitialUp(index);
             }
@@ -289,7 +363,11 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
     submitButton.addEventListener('click', submitScore);
-    newGameButton.addEventListener('click', function () {
+    newGameButton.addEventListener('click', () => {
+        resetGame();
+        showScreen(startScreen);
+    });
+    newGameOnlyButton.addEventListener('click', () => {
         resetGame();
         showScreen(startScreen);
     });

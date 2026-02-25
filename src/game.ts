@@ -53,10 +53,44 @@ const tierBreakdown = document.getElementById('tier-breakdown') as HTMLElement;
 const initialSlots = document.querySelectorAll('.initial-slot');
 const arrowButtons = document.querySelectorAll('.arrow-btn');
 const submitButton = document.getElementById('submit-button') as HTMLButtonElement;
+const initialsSection = document.getElementById('initials-submit-row') as HTMLElement;
+const newGameOnlyButton = document.getElementById('newgame-only-button') as HTMLButtonElement;
+const personalBestMessage = document.getElementById('personal-best-message') as HTMLElement;
 
 // DOM elements - Leaderboard
 const leaderboardList = document.getElementById('leaderboard-list') as HTMLElement;
 const newGameButton = document.getElementById('newgame-button') as HTMLElement;
+
+// Get current month key (e.g., "2026-02")
+function getCurrentMonthKey(): string {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+// Get monthly personal best
+function getMonthlyBest(): number {
+    const monthKey = getCurrentMonthKey();
+    const stored = localStorage.getItem(`timedebt_best_${monthKey}`);
+    return stored ? parseInt(stored, 10) : 0;
+}
+
+// Set monthly personal best
+function setMonthlyBest(newScore: number): void {
+    const monthKey = getCurrentMonthKey();
+    localStorage.setItem(`timedebt_best_${monthKey}`, newScore.toString());
+}
+
+// Check if user has already submitted this month
+function hasSubmittedThisMonth(): boolean {
+    const monthKey = getCurrentMonthKey();
+    return localStorage.getItem(`timedebt_submitted_${monthKey}`) === 'true';
+}
+
+// Mark that user has submitted this month
+function markSubmittedThisMonth(): void {
+    const monthKey = getCurrentMonthKey();
+    localStorage.setItem(`timedebt_submitted_${monthKey}`, 'true');
+}
 
 // Detect device type
 function detectDevice(): void {
@@ -229,11 +263,40 @@ function endGame(): void {
         <div>BAD: ${bads}<span class="points-math"> × ${POINTS.bad}</span> = ${bads * POINTS.bad}</div>
     `;
     
-    // Disable submit button for 0.5 seconds
-    submitButton.disabled = true;
-    setTimeout(() => {
-        submitButton.disabled = false;
-    }, 500);
+    const monthlyBest = getMonthlyBest();
+    const isNewBest = score > monthlyBest;
+    const alreadySubmitted = hasSubmittedThisMonth();
+    
+    if (isNewBest && !alreadySubmitted) {
+        // Show initials and submit
+        initialsSection.classList.remove('hidden');
+        newGameOnlyButton.classList.add('hidden');
+        personalBestMessage.textContent = 'NEW PERSONAL BEST!';
+        personalBestMessage.classList.remove('hidden');
+        
+        // Disable submit button for 0.5 seconds
+        submitButton.disabled = true;
+        setTimeout(() => {
+            submitButton.disabled = false;
+        }, 500);
+    } else {
+        // Show only new game button
+        initialsSection.classList.add('hidden');
+        newGameOnlyButton.classList.remove('hidden');
+        
+        if (alreadySubmitted) {
+            personalBestMessage.textContent = `ALREADY SUBMITTED (BEST: ${monthlyBest})`;
+        } else {
+            personalBestMessage.textContent = `PERSONAL BEST: ${monthlyBest}`;
+        }
+        personalBestMessage.classList.remove('hidden');
+        
+        // Disable new game button for 1 second
+        newGameOnlyButton.disabled = true;
+        setTimeout(() => {
+            newGameOnlyButton.disabled = false;
+        }, 1000);
+    }
     
     showScreen(gameoverScreen);
 }
@@ -268,9 +331,11 @@ function cycleInitialDown(index: number): void {
     }
 }
 
-// Submit score (placeholder for Supabase integration)
+// Submit score
 function submitScore(): void {
     saveInitials();
+    setMonthlyBest(score);
+    markSubmittedThisMonth();
 
     const scoreData = {
         userId: userId,
@@ -338,6 +403,11 @@ document.addEventListener('DOMContentLoaded', () => {
     submitButton.addEventListener('click', submitScore);
 
     newGameButton.addEventListener('click', () => {
+        resetGame();
+        showScreen(startScreen);
+    });
+
+    newGameOnlyButton.addEventListener('click', () => {
         resetGame();
         showScreen(startScreen);
     });
