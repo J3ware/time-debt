@@ -36,29 +36,37 @@
 
         <!-- Game Over Screen -->
         <div id="gameover-screen" class="screen hidden">
-            <div id="final-score-label">SCORE</div>
-            <div id="final-score">0</div>
-            <div id="final-taps-label">TAPS</div>
-            <div id="final-taps">0</div>
-            <div id="tier-breakdown"></div>
-            <div id="initials-input">
-                <div class="initial-column">
-                    <button class="arrow-btn up" data-index="0">▲</button>
-                    <span class="initial-slot" data-index="0">A</span>
-                    <button class="arrow-btn down" data-index="0">▼</button>
+            <div class="score-taps-row">
+                <div class="score-box">
+                    <label>SCORE</label>
+                    <div id="final-score" class="value">0</div>
                 </div>
-                <div class="initial-column">
-                    <button class="arrow-btn up" data-index="1">▲</button>
-                    <span class="initial-slot" data-index="1">A</span>
-                    <button class="arrow-btn down" data-index="1">▼</button>
-                </div>
-                <div class="initial-column">
-                    <button class="arrow-btn up" data-index="2">▲</button>
-                    <span class="initial-slot" data-index="2">A</span>
-                    <button class="arrow-btn down" data-index="2">▼</button>
+                <div class="taps-box">
+                    <label>TAPS</label>
+                    <div id="final-taps" class="value">0</div>
                 </div>
             </div>
-            <button id="submit-button" class="arcade-button">SUBMIT</button>
+            <div id="tier-breakdown"></div>
+            <div id="initials-submit-row">
+                <div id="initials-input">
+                    <div class="initial-column">
+                        <button class="arrow-btn up" data-index="0">▲</button>
+                        <span class="initial-slot" data-index="0">A</span>
+                        <button class="arrow-btn down" data-index="0">▼</button>
+                    </div>
+                    <div class="initial-column">
+                        <button class="arrow-btn up" data-index="1">▲</button>
+                        <span class="initial-slot" data-index="1">A</span>
+                        <button class="arrow-btn down" data-index="1">▼</button>
+                    </div>
+                    <div class="initial-column">
+                        <button class="arrow-btn up" data-index="2">▲</button>
+                        <span class="initial-slot" data-index="2">A</span>
+                        <button class="arrow-btn down" data-index="2">▼</button>
+                    </div>
+                </div>
+                <button id="submit-button" class="arcade-button">SUBMIT</button>
+            </div>
         </div>
 
         <!-- Leaderboard Screen -->

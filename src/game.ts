@@ -221,12 +221,12 @@ function endGame(): void {
     finalScoreDisplay.textContent = score.toString();
     finalTapsDisplay.textContent = taps.toString();
     tierBreakdown.innerHTML = `
-        <div>PERFECT (≤0.005): ${perfects} × ${POINTS.perfect} = ${perfects * POINTS.perfect}</div>
-        <div>GREAT (≤0.050): ${greats} × ${POINTS.great} = ${greats * POINTS.great}</div>
-        <div>GOOD (≤0.100): ${goods} × ${POINTS.good} = ${goods * POINTS.good}</div>
-        <div>FINE (≤0.200): ${fines} × ${POINTS.fine} = ${fines * POINTS.fine}</div>
-        <div>POOR (≤0.350): ${poors} × ${POINTS.poor} = ${poors * POINTS.poor}</div>
-        <div>BAD (≤0.500): ${bads} × ${POINTS.bad} = ${bads * POINTS.bad}</div>
+        <div>PERFECT: ${perfects}<span class="points-math"> × ${POINTS.perfect}</span> = ${perfects * POINTS.perfect}</div>
+        <div>GREAT: ${greats}<span class="points-math"> × ${POINTS.great}</span> = ${greats * POINTS.great}</div>
+        <div>GOOD: ${goods}<span class="points-math"> × ${POINTS.good}</span> = ${goods * POINTS.good}</div>
+        <div>FINE: ${fines}<span class="points-math"> × ${POINTS.fine}</span> = ${fines * POINTS.fine}</div>
+        <div>POOR: ${poors}<span class="points-math"> × ${POINTS.poor}</span> = ${poors * POINTS.poor}</div>
+        <div>BAD: ${bads}<span class="points-math"> × ${POINTS.bad}</span> = ${bads * POINTS.bad}</div>
     `;
     
     // Disable submit button for 0.5 seconds
