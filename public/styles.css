@@ -57,12 +57,12 @@ body {
 
 .arcade-button {
     font-family: 'Share Tech Mono', monospace;
-    font-size: 6vw;
+    font-size: 1.2rem;
     background: transparent;
     color: #e0e0e0;
     border: 2px solid #e0e0e0;
-    padding: 2vh 6vw;
-    margin-top: 4vh;
+    padding: 1.5vh 3vw;
+    margin-top: 2vh;
     cursor: pointer;
     transition: all 0.1s ease;
 }
@@ -76,6 +76,17 @@ body {
     transform: scale(0.95);
 }
 
+.arcade-button:disabled {
+    color: #555;
+    border-color: #555;
+    cursor: not-allowed;
+}
+
+.arcade-button:disabled:hover {
+    background: transparent;
+    color: #555;
+}
+
 /* Game Over Screen */
 #final-score-label {
     font-size: 2vw;
@@ -84,6 +95,17 @@ body {
 
 #final-score {
     font-size: 10vw;
+}
+
+#final-taps-label {
+    font-size: 2vw;
+    color: #555;
+    margin-top: 2vh;
+}
+
+#final-taps {
+    font-size: 6vw;
+    color: #888;
 }
 
 #tier-breakdown {
@@ -345,13 +367,141 @@ body {
     color: #555;
 }
 
-#final-taps-label {
-    font-size: 2vw;
-    color: #555;
-    margin-top: 2vh;
+/* Game Over Screen */
+#gameover-screen {
+    padding: 2vh 4vw;
+    justify-content: center;
 }
 
-#final-taps {
-    font-size: 6vw;
+.score-taps-row {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 4vw;
+    margin-bottom: 2vh;
+}
+
+.score-box, .taps-box {
+    text-align: center;
+}
+
+.score-box label, .taps-box label {
+    font-size: 1.2rem;
+    color: #555;
+    display: block;
+    margin-bottom: 0.5vh;
+}
+
+.score-box .value, .taps-box .value {
+    font-size: 3rem;
+    color: #e0e0e0;
+}
+
+#tier-breakdown {
+    font-size: 0.9rem;
     color: #888;
+    margin-bottom: 2vh;
+    text-align: center;
+    line-height: 1.5;
+}
+
+#initials-submit-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 3vw;
+}
+
+#initials-input {
+    display: flex;
+    gap: 1vw;
+}
+
+.initial-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5vh;
+}
+
+.arrow-btn {
+    font-size: 1.5rem;
+    background: transparent;
+    color: #555;
+    border: none;
+    cursor: pointer;
+    padding: 0.5vh 1vw;
+    transition: color 0.1s ease;
+}
+
+.arrow-btn:hover {
+    color: #e0e0e0;
+}
+
+.arrow-btn:active {
+    transform: scale(0.9);
+}
+
+.initial-slot {
+    font-size: 2.5rem;
+    width: 3.5rem;
+    height: 3.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid #555;
+}
+
+/* Mobile Game Over */
+@media (max-width: 600px) {
+    #gameover-screen {
+        padding: 3vh 5vw;
+    }
+
+    .score-taps-row {
+        gap: 10vw;
+        margin-bottom: 3vh;
+    }
+
+    .score-box label, .taps-box label {
+        font-size: 4vw;
+    }
+
+    .score-box .value, .taps-box .value {
+        font-size: 12vw;
+    }
+
+    #tier-breakdown {
+        font-size: 4vw;
+        line-height: 1.8;
+        margin-bottom: 3vh;
+    }
+
+    #tier-breakdown .points-math {
+        display: none;
+    }
+
+    #initials-submit-row {
+        flex-direction: column;
+        gap: 3vh;
+    }
+
+    #initials-input {
+        gap: 5vw;
+    }
+
+    .initial-slot {
+        font-size: 10vw;
+        width: 15vw;
+        height: 15vw;
+    }
+
+    .arrow-btn {
+        font-size: 6vw;
+    }
+
+    .arcade-button {
+        font-size: 6vw;
+        padding: 2vh 8vw;
+    }
 }
