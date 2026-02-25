@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Time Debt</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen">
+            <div id="timer-display" class="timer">1.000</div>
+            <button id="start-button" class="arcade-button">START</button>
+        </div>
+
+        <!-- Gameplay Screen -->
+        <div id="gameplay-screen" class="screen hidden">
+            <div id="timer" class="timer">1.000</div>
+            <div id="score">0</div>
+            <div id="instruction">tap anywhere</div>
+        </div>
+
+<!-- Game Over Screen -->
+        <div id="gameover-screen" class="screen hidden">
+            <div id="final-score-label">SCORE</div>
+            <div id="final-score">0</div>
+            <div id="tier-breakdown"></div>
+            <div id="initials-input">
+                <div class="initial-column">
+                    <button class="arrow-btn up" data-index="0">▲</button>
+                    <span class="initial-slot" data-index="0">A</span>
+                    <button class="arrow-btn down" data-index="0">▼</button>
+                </div>
+                <div class="initial-column">
+                    <button class="arrow-btn up" data-index="1">▲</button>
+                    <span class="initial-slot" data-index="1">A</span>
+                    <button class="arrow-btn down" data-index="1">▼</button>
+                </div>
+                <div class="initial-column">
+                    <button class="arrow-btn up" data-index="2">▲</button>
+                    <span class="initial-slot" data-index="2">A</span>
+                    <button class="arrow-btn down" data-index="2">▼</button>
+                </div>
+            </div>
+            <button id="submit-button" class="arcade-button">SUBMIT</button>
+        </div>
+
+        <!-- Leaderboard Screen -->
+        <div id="leaderboard-screen" class="screen hidden">
+            <div id="leaderboard-title">LEADERBOARD</div>
+            <div id="leaderboard-list"></div>
+            <button id="newgame-button" class="arcade-button">NEW GAME</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
