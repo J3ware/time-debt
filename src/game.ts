@@ -264,7 +264,7 @@ function endGame(): void {
     `;
     
     const monthlyBest = getMonthlyBest();
-    const isNewBest = score > monthlyBest;
+    const isNewBest = score > monthlyBest && score > 0;
     const alreadySubmitted = hasSubmittedThisMonth();
     
     if (isNewBest && !alreadySubmitted) {
@@ -286,6 +286,8 @@ function endGame(): void {
         
         if (alreadySubmitted) {
             personalBestMessage.textContent = `ALREADY SUBMITTED (BEST: ${monthlyBest})`;
+        } else if (score === 0) {
+            personalBestMessage.textContent = 'SCORE SOME POINTS FIRST!';
         } else {
             personalBestMessage.textContent = `PERSONAL BEST: ${monthlyBest}`;
         }

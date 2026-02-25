@@ -236,7 +236,7 @@ function endGame() {
         <div>BAD: ${bads}<span class="points-math"> × ${POINTS.bad}</span> = ${bads * POINTS.bad}</div>
     `;
     const monthlyBest = getMonthlyBest();
-    const isNewBest = score > monthlyBest;
+    const isNewBest = score > monthlyBest && score > 0;
     const alreadySubmitted = hasSubmittedThisMonth();
     if (isNewBest && !alreadySubmitted) {
         // Show initials and submit
@@ -256,6 +256,9 @@ function endGame() {
         newGameOnlyButton.classList.remove('hidden');
         if (alreadySubmitted) {
             personalBestMessage.textContent = `ALREADY SUBMITTED (BEST: ${monthlyBest})`;
+        }
+        else if (score === 0) {
+            personalBestMessage.textContent = 'SCORE SOME POINTS FIRST!';
         }
         else {
             personalBestMessage.textContent = `PERSONAL BEST: ${monthlyBest}`;
