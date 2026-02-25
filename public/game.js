@@ -16,10 +16,13 @@ var currentInitials = ['A', 'A', 'A'];
 var deviceType = 'desktop';
 var userId = '';
 // DOM elements - Screens
+var instructionsPopup = document.getElementById('instructions-popup');
 var startScreen = document.getElementById('start-screen');
 var gameplayScreen = document.getElementById('gameplay-screen');
 var gameoverScreen = document.getElementById('gameover-screen');
 var leaderboardScreen = document.getElementById('leaderboard-screen');
+// DOM elements - Instructions
+var gotItButton = document.getElementById('got-it-button');
 // DOM elements - Start screen
 var startButton = document.getElementById('start-button');
 // DOM elements - Gameplay
@@ -65,29 +68,46 @@ function loadInitials() {
 function saveInitials() {
     localStorage.setItem('timedebt_initials', currentInitials.join(''));
 }
+// Check if user has seen instructions
+function hasSeenInstructions() {
+    return localStorage.getItem('timedebt_instructions_seen') === 'true';
+}
+// Mark instructions as seen
+function markInstructionsSeen() {
+    localStorage.setItem('timedebt_instructions_seen', 'true');
+}
 // Show a specific screen
 function showScreen(screen) {
+    instructionsPopup.classList.add('hidden');
     startScreen.classList.add('hidden');
     gameplayScreen.classList.add('hidden');
     gameoverScreen.classList.add('hidden');
     leaderboardScreen.classList.add('hidden');
     screen.classList.remove('hidden');
 }
+// Show instructions popup
+function showInstructions() {
+    startScreen.classList.add('hidden');
+    gameplayScreen.classList.add('hidden');
+    gameoverScreen.classList.add('hidden');
+    leaderboardScreen.classList.add('hidden');
+    instructionsPopup.classList.remove('hidden');
+}
 // Classify a point based on remaining time
 function classifyPoint(remaining) {
-    if (remaining <= 0.001) {
+    if (remaining <= 0.005) {
         perfects++;
     }
-    else if (remaining <= 0.010) {
+    else if (remaining <= 0.050) {
         greats++;
     }
-    else if (remaining <= 0.050) {
+    else if (remaining <= 0.100) {
         goods++;
     }
-    else if (remaining <= 0.090) {
+    else if (remaining <= 0.200) {
         fines++;
     }
-    else if (remaining <= 0.150) {
+    else if (remaining <= 0.350) {
         poors++;
     }
     else if (remaining <= 0.500) {
@@ -158,7 +178,7 @@ function handleGameplayTap(e) {
 // End the game and show game over screen
 function endGame() {
     finalScoreDisplay.textContent = score.toString();
-    tierBreakdown.innerHTML = "\n        <div>PERFECT (\u22640.001): ".concat(perfects, "</div>\n        <div>GREAT (\u22640.010): ").concat(greats, "</div>\n        <div>GOOD (\u22640.050): ").concat(goods, "</div>\n        <div>FINE (\u22640.090): ").concat(fines, "</div>\n        <div>POOR (\u22640.150): ").concat(poors, "</div>\n        <div>BAD (\u22640.500): ").concat(bads, "</div>\n    ");
+    tierBreakdown.innerHTML = "\n        <div>PERFECT (\u22640.005): ".concat(perfects, "</div>\n        <div>GREAT (\u22640.050): ").concat(greats, "</div>\n        <div>GOOD (\u22640.100): ").concat(goods, "</div>\n        <div>FINE (\u22640.200): ").concat(fines, "</div>\n        <div>POOR (\u22640.350): ").concat(poors, "</div>\n        <div>BAD (\u22640.500): ").concat(bads, "</div>\n    ");
     showScreen(gameoverScreen);
 }
 // Cycle initial letter up (A→B→C...→Z→A)
@@ -223,6 +243,10 @@ function showLeaderboard() {
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function () {
     // Event listeners
+    gotItButton.addEventListener('click', function () {
+        markInstructionsSeen();
+        showScreen(startScreen);
+    });
     startButton.addEventListener('click', startGame);
     gameplayScreen.addEventListener('click', handleGameplayTap);
     gameplayScreen.addEventListener('touchstart', handleGameplayTap);
@@ -248,4 +272,11 @@ document.addEventListener('DOMContentLoaded', function () {
     detectDevice();
     initUserId();
     loadInitials();
+    // Show instructions or start screen
+    if (hasSeenInstructions()) {
+        showScreen(startScreen);
+    }
+    else {
+        showInstructions();
+    }
 });

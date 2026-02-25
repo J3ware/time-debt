@@ -19,10 +19,14 @@ let deviceType: 'desktop' | 'mobile' = 'desktop';
 let userId: string = '';
 
 // DOM elements - Screens
+const instructionsPopup = document.getElementById('instructions-popup') as HTMLElement;
 const startScreen = document.getElementById('start-screen') as HTMLElement;
 const gameplayScreen = document.getElementById('gameplay-screen') as HTMLElement;
 const gameoverScreen = document.getElementById('gameover-screen') as HTMLElement;
 const leaderboardScreen = document.getElementById('leaderboard-screen') as HTMLElement;
+
+// DOM elements - Instructions
+const gotItButton = document.getElementById('got-it-button') as HTMLElement;
 
 // DOM elements - Start screen
 const startButton = document.getElementById('start-button') as HTMLElement;
@@ -75,8 +79,19 @@ function saveInitials(): void {
     localStorage.setItem('timedebt_initials', currentInitials.join(''));
 }
 
+// Check if user has seen instructions
+function hasSeenInstructions(): boolean {
+    return localStorage.getItem('timedebt_instructions_seen') === 'true';
+}
+
+// Mark instructions as seen
+function markInstructionsSeen(): void {
+    localStorage.setItem('timedebt_instructions_seen', 'true');
+}
+
 // Show a specific screen
 function showScreen(screen: HTMLElement): void {
+    instructionsPopup.classList.add('hidden');
     startScreen.classList.add('hidden');
     gameplayScreen.classList.add('hidden');
     gameoverScreen.classList.add('hidden');
@@ -84,17 +99,26 @@ function showScreen(screen: HTMLElement): void {
     screen.classList.remove('hidden');
 }
 
+// Show instructions popup
+function showInstructions(): void {
+    startScreen.classList.add('hidden');
+    gameplayScreen.classList.add('hidden');
+    gameoverScreen.classList.add('hidden');
+    leaderboardScreen.classList.add('hidden');
+    instructionsPopup.classList.remove('hidden');
+}
+
 // Classify a point based on remaining time
 function classifyPoint(remaining: number): void {
-    if (remaining <= 0.001) {
+    if (remaining <= 0.005) {
         perfects++;
-    } else if (remaining <= 0.010) {
-        greats++;
     } else if (remaining <= 0.050) {
+        greats++;
+    } else if (remaining <= 0.100) {
         goods++;
-    } else if (remaining <= 0.090) {
+    } else if (remaining <= 0.200) {
         fines++;
-    } else if (remaining <= 0.150) {
+    } else if (remaining <= 0.350) {
         poors++;
     } else if (remaining <= 0.500) {
         bads++;
@@ -177,11 +201,11 @@ function handleGameplayTap(e: Event): void {
 function endGame(): void {
     finalScoreDisplay.textContent = score.toString();
     tierBreakdown.innerHTML = `
-        <div>PERFECT (≤0.001): ${perfects}</div>
-        <div>GREAT (≤0.010): ${greats}</div>
-        <div>GOOD (≤0.050): ${goods}</div>
-        <div>FINE (≤0.090): ${fines}</div>
-        <div>POOR (≤0.150): ${poors}</div>
+        <div>PERFECT (≤0.005): ${perfects}</div>
+        <div>GREAT (≤0.050): ${greats}</div>
+        <div>GOOD (≤0.100): ${goods}</div>
+        <div>FINE (≤0.200): ${fines}</div>
+        <div>POOR (≤0.350): ${poors}</div>
         <div>BAD (≤0.500): ${bads}</div>
     `;
     showScreen(gameoverScreen);
@@ -262,6 +286,11 @@ function showLeaderboard(): void {
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     // Event listeners
+    gotItButton.addEventListener('click', () => {
+        markInstructionsSeen();
+        showScreen(startScreen);
+    });
+
     startButton.addEventListener('click', startGame);
 
     gameplayScreen.addEventListener('click', handleGameplayTap);
@@ -290,4 +319,11 @@ document.addEventListener('DOMContentLoaded', () => {
     detectDevice();
     initUserId();
     loadInitials();
+
+    // Show instructions or start screen
+    if (hasSeenInstructions()) {
+        showScreen(startScreen);
+    } else {
+        showInstructions();
+    }
 });

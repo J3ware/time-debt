@@ -220,3 +220,105 @@ body {
         font-size: 3.5vw;
     }
 }
+
+/* Lock layout on orientation change */
+@media (orientation: landscape) and (max-height: 500px) {
+    #game-container {
+        height: 100vh;
+        overflow: hidden;
+    }
+    
+    .timer {
+        font-size: 15vh;
+    }
+    
+    #score {
+        font-size: 8vh;
+    }
+    
+    .arcade-button {
+        font-size: 5vh;
+        padding: 1.5vh 4vw;
+    }
+    
+    #tier-breakdown {
+        font-size: 2.5vh;
+        line-height: 1.2;
+    }
+    
+    .initial-column {
+        gap: 0.5vh;
+    }
+    
+    .arrow-btn {
+        font-size: 4vh;
+    }
+    
+    .initial-slot {
+        font-size: 6vh;
+        width: 10vh;
+        height: 8vh;
+    }
+}
+
+/* Instructions Popup */
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.popup.hidden {
+    display: none;
+}
+
+.popup-content {
+    text-align: center;
+    padding: 4vh 6vw;
+    max-width: 90%;
+}
+
+.popup-content h1 {
+    font-size: 8vw;
+    margin-bottom: 3vh;
+    color: #e0e0e0;
+}
+
+.popup-content p {
+    font-size: 3.5vw;
+    color: #aaa;
+    margin-bottom: 2vh;
+    line-height: 1.4;
+}
+
+.popup-content .tier-hint {
+    margin-top: 3vh;
+    color: #888;
+}
+
+.popup-content .tier-examples {
+    font-size: 3vw;
+    color: #e0e0e0;
+    letter-spacing: 0.1em;
+}
+
+@media (max-width: 600px) {
+    .popup-content h1 {
+        font-size: 12vw;
+    }
+    
+    .popup-content p {
+        font-size: 5vw;
+    }
+    
+    .popup-content .tier-examples {
+        font-size: 4vw;
+    }
+}

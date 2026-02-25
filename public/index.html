@@ -8,8 +8,21 @@
 </head>
 <body>
     <div id="game-container">
+        <!-- Instructions Popup -->
+        <div id="instructions-popup" class="popup hidden">
+            <div class="popup-content">
+                <h1>TIME DEBT</h1>
+                <p>Tap before the timer hits zero.</p>
+                <p>Each tap costs you the time you had left.</p>
+                <p class="tier-hint">The closer to zero, the better your score:</p>
+                <p class="tier-examples">PERFECT ≤0.005 | GREAT ≤0.050</p>
+                <p>How long can you survive?</p>
+                <button id="got-it-button" class="arcade-button">GOT IT</button>
+            </div>
+        </div>
+
         <!-- Start Screen -->
-        <div id="start-screen" class="screen">
+        <div id="start-screen" class="screen hidden">
             <div id="timer-display" class="timer">1.000</div>
             <button id="start-button" class="arcade-button">START</button>
         </div>
@@ -21,7 +34,7 @@
             <div id="instruction">tap anywhere</div>
         </div>
 
-<!-- Game Over Screen -->
+        <!-- Game Over Screen -->
         <div id="gameover-screen" class="screen hidden">
             <div id="final-score-label">SCORE</div>
             <div id="final-score">0</div>
