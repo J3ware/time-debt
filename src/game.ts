@@ -24,6 +24,9 @@ const POINTS = {
     bad: 0
 };
 
+// Ring constants
+const RING_CIRCUMFERENCE = 2 * Math.PI * 90; // ~565.49
+
 // Player data
 let currentInitials: string[] = ['A', 'A', 'A'];
 let deviceType: 'desktop' | 'mobile' = 'desktop';
@@ -45,6 +48,7 @@ const startButton = document.getElementById('start-button') as HTMLElement;
 // DOM elements - Gameplay
 const timerDisplay = document.getElementById('timer') as HTMLElement;
 const scoreDisplay = document.getElementById('score') as HTMLElement;
+const timerRingProgress = document.getElementById('timer-ring-progress') as unknown as SVGCircleElement;
 
 // DOM elements - Game over
 const finalScoreDisplay = document.getElementById('final-score') as HTMLElement;
@@ -193,10 +197,26 @@ function resetGame(): void {
     lastFrameTime = 0;
 }
 
+// Update the timer ring visualization
+function updateRing(): void {
+    // Calculate what percentage of the ORIGINAL 1 second we're showing
+    // maxTime tells us how much of the original time is available
+    // timeRemaining tells us how much of maxTime is left
+    
+    // The ring should show: timeRemaining out of the original 1.000
+    // So if maxTime is 0.7 and timeRemaining is 0.5, we show 0.5/1.0 = 50% of the ring
+    
+    const percentRemaining = timeRemaining; // Since original is always 1.000
+    const offset = RING_CIRCUMFERENCE * (1 - percentRemaining);
+    
+    timerRingProgress.style.strokeDashoffset = offset.toString();
+}
+
 // Update gameplay display
 function updateDisplay(): void {
     timerDisplay.textContent = timeRemaining.toFixed(3);
     scoreDisplay.textContent = score.toString();
+    updateRing();
 }
 
 // Main game loop

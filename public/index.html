@@ -23,13 +23,52 @@
 
         <!-- Start Screen -->
         <div id="start-screen" class="screen hidden">
-            <div id="timer-display" class="timer">1.000</div>
+            <div class="timer-container">
+                <svg class="timer-ring" viewBox="0 0 200 200">
+                    <circle 
+                        class="timer-ring-circle" 
+                        cx="100" 
+                        cy="100" 
+                        r="90"
+                        fill="none"
+                        stroke="#e0e0e0"
+                        stroke-width="8"
+                    />
+                </svg>
+                <div id="timer-display" class="timer">1.000</div>
+            </div>
             <button id="start-button" class="arcade-button">START</button>
         </div>
 
         <!-- Gameplay Screen -->
         <div id="gameplay-screen" class="screen hidden">
-            <div id="timer" class="timer">1.000</div>
+            <div class="timer-container">
+                <svg class="timer-ring" viewBox="0 0 200 200">
+                    <circle 
+                        id="timer-ring-bg"
+                        class="timer-ring-circle timer-ring-bg" 
+                        cx="100" 
+                        cy="100" 
+                        r="90"
+                        fill="none"
+                        stroke="#333"
+                        stroke-width="8"
+                    />
+                    <circle 
+                        id="timer-ring-progress"
+                        class="timer-ring-circle timer-ring-progress" 
+                        cx="100" 
+                        cy="100" 
+                        r="90"
+                        fill="none"
+                        stroke="#e0e0e0"
+                        stroke-width="8"
+                        stroke-linecap="butt"
+                        transform="rotate(-90 100 100)"
+                    />
+                </svg>
+                <div id="timer" class="timer">1.000</div>
+            </div>
             <div id="score">0</div>
             <div id="instruction">tap anywhere</div>
         </div>

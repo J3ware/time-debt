@@ -37,9 +37,42 @@ body {
     display: none;
 }
 
+/* Timer Ring Container */
+.timer-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 60vmin;
+    height: 60vmin;
+    max-width: 400px;
+    max-height: 400px;
+}
+
+.timer-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.timer-ring-circle {
+    transition: stroke-dashoffset 0.05s linear;
+}
+
+.timer-ring-bg {
+    opacity: 0.3;
+}
+
+.timer-ring-progress {
+    /* Will be set by JS - circumference = 2 * PI * 90 ≈ 565.49 */
+    stroke-dasharray: 565.49;
+    stroke-dashoffset: 0;
+}
+
 .timer {
-    font-size: 20vw;
+    font-size: 15vmin;
     letter-spacing: 0.02em;
+    z-index: 1;
 }
 
 #score {
@@ -211,8 +244,13 @@ body {
 
 /* Mobile adjustments */
 @media (max-width: 600px) {
+    .timer-container {
+        width: 70vmin;
+        height: 70vmin;
+    }
+
     .timer {
-        font-size: 25vw;
+        font-size: 18vmin;
     }
 
     .arcade-button {
@@ -250,8 +288,13 @@ body {
         overflow: hidden;
     }
     
+    .timer-container {
+        width: 40vmin;
+        height: 40vmin;
+    }
+    
     .timer {
-        font-size: 15vh;
+        font-size: 12vmin;
     }
     
     #score {
