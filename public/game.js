@@ -435,15 +435,16 @@ function handleOneTapTap() {
         isRunning = false;
         taps++;
         classifyPoint(timeRemaining);
-        // Accumulate debt
+        // Accumulate debt (but don't update display yet - show the tap result)
         maxTime = maxTime - timeRemaining;
-        timeRemaining = maxTime;
-        updateDisplay();
-        // Start lockout period
+        // Start lockout period (display still shows the time they tapped at)
         startLockoutPeriod();
     }
     else if (!isLocked && !isCountingDown) {
         // Second tap (after lockout) - start countdown
+        // Now update to new maxTime before countdown
+        timeRemaining = maxTime;
+        updateDisplay();
         startCountdown();
     }
 }
