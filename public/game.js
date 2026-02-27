@@ -129,6 +129,22 @@ function hasSeenInstructions() {
 function markInstructionsSeen() {
     localStorage.setItem('timedebt_instructions_seen', 'true');
 }
+// Load settings from localStorage
+function loadSettings() {
+    const storedMode = localStorage.getItem('timedebt_mode');
+    if (storedMode === 'sudden-death' || storedMode === 'one-tap') {
+        gameMode = storedMode;
+    }
+    const storedRing = localStorage.getItem('timedebt_ring');
+    if (storedRing !== null) {
+        ringEnabled = storedRing === 'true';
+    }
+}
+// Save settings to localStorage
+function saveSettings() {
+    localStorage.setItem('timedebt_mode', gameMode);
+    localStorage.setItem('timedebt_ring', ringEnabled.toString());
+}
 // Show a specific screen (no fade)
 function showScreen(screen) {
     instructionsPopup.classList.add('hidden');
@@ -432,14 +448,16 @@ document.addEventListener('DOMContentLoaded', () => {
         showInstructions();
     });
     leaderboardButton.addEventListener('click', showLeaderboard);
-    // Toggle handlers (placeholder functionality for Phase 2)
+    // Toggle handlers
     modeToggle.addEventListener('click', () => {
         gameMode = gameMode === 'sudden-death' ? 'one-tap' : 'sudden-death';
         updateToggleDisplays();
+        saveSettings();
     });
     ringToggle.addEventListener('click', () => {
         ringEnabled = !ringEnabled;
         updateToggleDisplays();
+        saveSettings();
     });
     // Start Screen
     startScreen.addEventListener('click', handleStartScreenTap);
@@ -469,6 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
     detectDevice();
     initUserId();
     loadInitials();
+    loadSettings();
     updateToggleDisplays();
     // Show instructions or main menu
     if (hasSeenInstructions()) {
