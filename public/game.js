@@ -22,27 +22,36 @@ const POINTS = {
     poor: 5,
     bad: 0
 };
-// Ring constants
-const RING_CIRCUMFERENCE = 2 * Math.PI * 90; // ~565.49
+// Settings (will be persisted in Phase 2)
+let gameMode = 'sudden-death';
+let ringEnabled = true;
 // Player data
 let currentInitials = ['A', 'A', 'A'];
 let deviceType = 'desktop';
 let userId = '';
 // DOM elements - Screens
 const instructionsPopup = document.getElementById('instructions-popup');
+const mainMenuScreen = document.getElementById('main-menu-screen');
 const startScreen = document.getElementById('start-screen');
 const gameplayScreen = document.getElementById('gameplay-screen');
 const gameoverScreen = document.getElementById('gameover-screen');
+const scoreScreen = document.getElementById('score-screen');
 const leaderboardScreen = document.getElementById('leaderboard-screen');
 // DOM elements - Instructions
 const gotItButton = document.getElementById('got-it-button');
-// DOM elements - Start screen
-const startButton = document.getElementById('start-button');
+// DOM elements - Main Menu
+const startGameButton = document.getElementById('start-game-button');
+const helpButton = document.getElementById('help-button');
+const leaderboardButton = document.getElementById('leaderboard-button');
+const modeToggle = document.getElementById('mode-toggle');
+const ringToggle = document.getElementById('ring-toggle');
+// DOM elements - Start Screen
+const startTimerRing = document.getElementById('start-timer-ring');
 // DOM elements - Gameplay
 const timerDisplay = document.getElementById('timer');
 const scoreDisplay = document.getElementById('score');
-const timerRingProgress = document.getElementById('timer-ring-progress');
-// DOM elements - Game over
+const timerRing = document.getElementById('timer-ring');
+// DOM elements - Score Screen
 const finalScoreDisplay = document.getElementById('final-score');
 const finalTapsDisplay = document.getElementById('final-taps');
 const tierBreakdown = document.getElementById('tier-breakdown');
@@ -50,11 +59,11 @@ const initialSlots = document.querySelectorAll('.initial-slot');
 const arrowButtons = document.querySelectorAll('.arrow-btn');
 const submitButton = document.getElementById('submit-button');
 const initialsSection = document.getElementById('initials-submit-row');
-const newGameOnlyButton = document.getElementById('newgame-only-button');
+const menuFromScoreButton = document.getElementById('menu-from-score-button');
 const personalBestMessage = document.getElementById('personal-best-message');
 // DOM elements - Leaderboard
 const leaderboardList = document.getElementById('leaderboard-list');
-const newGameButton = document.getElementById('newgame-button');
+const menuFromLeaderboardButton = document.getElementById('menu-from-leaderboard-button');
 // Get current month key (e.g., "2026-02")
 function getCurrentMonthKey() {
     const now = new Date();
@@ -120,22 +129,50 @@ function hasSeenInstructions() {
 function markInstructionsSeen() {
     localStorage.setItem('timedebt_instructions_seen', 'true');
 }
-// Show a specific screen
+// Show a specific screen (no fade)
 function showScreen(screen) {
     instructionsPopup.classList.add('hidden');
+    mainMenuScreen.classList.add('hidden');
     startScreen.classList.add('hidden');
     gameplayScreen.classList.add('hidden');
     gameoverScreen.classList.add('hidden');
+    scoreScreen.classList.add('hidden');
+    leaderboardScreen.classList.add('hidden');
+    // Remove any fade classes
+    screen.classList.remove('fade-in');
+    screen.classList.remove('hidden');
+}
+// Show a screen with fade-in effect
+function showScreenWithFade(screen) {
+    instructionsPopup.classList.add('hidden');
+    mainMenuScreen.classList.add('hidden');
+    startScreen.classList.add('hidden');
+    gameplayScreen.classList.add('hidden');
+    gameoverScreen.classList.add('hidden');
+    scoreScreen.classList.add('hidden');
     leaderboardScreen.classList.add('hidden');
     screen.classList.remove('hidden');
+    screen.classList.add('fade-in');
 }
 // Show instructions popup
 function showInstructions() {
-    startScreen.classList.add('hidden');
-    gameplayScreen.classList.add('hidden');
-    gameoverScreen.classList.add('hidden');
-    leaderboardScreen.classList.add('hidden');
     instructionsPopup.classList.remove('hidden');
+}
+// Update ring visibility based on setting
+function updateRingVisibility() {
+    if (ringEnabled) {
+        timerRing.classList.remove('hidden');
+        startTimerRing.classList.remove('hidden');
+    }
+    else {
+        timerRing.classList.add('hidden');
+        startTimerRing.classList.add('hidden');
+    }
+}
+// Update toggle displays
+function updateToggleDisplays() {
+    modeToggle.textContent = gameMode === 'sudden-death' ? 'SUDDEN DEATH' : 'ONE TAP';
+    ringToggle.textContent = ringEnabled ? 'ON' : 'OFF';
 }
 // Classify a point based on remaining time and add points
 function classifyPoint(remaining) {
@@ -181,14 +218,15 @@ function resetGame() {
 }
 // Update the timer ring visualization
 function updateRing() {
-    // Calculate what percentage of the ORIGINAL 1 second we're showing
-    // maxTime tells us how much of the original time is available
-    // timeRemaining tells us how much of maxTime is left
-    // The ring should show: timeRemaining out of the original 1.000
-    // So if maxTime is 0.7 and timeRemaining is 0.5, we show 0.5/1.0 = 50% of the ring
-    const percentRemaining = timeRemaining; // Since original is always 1.000
-    const offset = RING_CIRCUMFERENCE * (1 - percentRemaining);
-    timerRingProgress.style.strokeDashoffset = offset.toString();
+    if (!ringEnabled)
+        return;
+    const percent = timeRemaining * 100;
+    timerRing.style.background = `conic-gradient(
+        from 0deg,
+        #e0e0e0 0%,
+        #e0e0e0 ${percent}%,
+        transparent ${percent}%
+    )`;
 }
 // Update gameplay display
 function updateDisplay() {
@@ -216,13 +254,24 @@ function gameLoop(currentTime) {
     updateDisplay();
     requestAnimationFrame(gameLoop);
 }
-// Start the game
-function startGame() {
+// Go to start screen (pre-game)
+function goToStartScreen() {
     resetGame();
+    updateRingVisibility();
+    showScreen(startScreen);
+}
+// Start the game (from start screen tap)
+function startGame() {
     showScreen(gameplayScreen);
+    updateRingVisibility();
     isRunning = true;
     updateDisplay();
     requestAnimationFrame(gameLoop);
+}
+// Handle tap on start screen
+function handleStartScreenTap(e) {
+    e.preventDefault();
+    startGame();
 }
 // Handle tap during gameplay
 function handleGameplayTap(e) {
@@ -238,8 +287,16 @@ function handleGameplayTap(e) {
     lastFrameTime = 0;
     updateDisplay();
 }
-// End the game and show game over screen
+// End the game - show game over screen, then transition to score screen
 function endGame() {
+    showScreen(gameoverScreen);
+    // After 1 second, fade to score screen
+    setTimeout(() => {
+        showScoreScreen();
+    }, 1000);
+}
+// Show the score screen with fade
+function showScoreScreen() {
     finalScoreDisplay.textContent = score.toString();
     finalTapsDisplay.textContent = taps.toString();
     tierBreakdown.innerHTML = `
@@ -256,7 +313,7 @@ function endGame() {
     if (isNewBest && !alreadySubmitted) {
         // Show initials and submit
         initialsSection.classList.remove('hidden');
-        newGameOnlyButton.classList.add('hidden');
+        menuFromScoreButton.classList.add('hidden');
         personalBestMessage.textContent = 'NEW PERSONAL BEST!';
         personalBestMessage.classList.remove('hidden');
         // Disable submit button for 0.5 seconds
@@ -266,9 +323,9 @@ function endGame() {
         }, 500);
     }
     else {
-        // Show only new game button
+        // Show only main menu button
         initialsSection.classList.add('hidden');
-        newGameOnlyButton.classList.remove('hidden');
+        menuFromScoreButton.classList.remove('hidden');
         if (alreadySubmitted) {
             personalBestMessage.textContent = `ALREADY SUBMITTED (BEST: ${monthlyBest})`;
         }
@@ -279,13 +336,13 @@ function endGame() {
             personalBestMessage.textContent = `PERSONAL BEST: ${monthlyBest}`;
         }
         personalBestMessage.classList.remove('hidden');
-        // Disable new game button for 1 second
-        newGameOnlyButton.disabled = true;
+        // Disable menu button for 1 second
+        menuFromScoreButton.disabled = true;
         setTimeout(() => {
-            newGameOnlyButton.disabled = false;
+            menuFromScoreButton.disabled = false;
         }, 1000);
     }
-    showScreen(gameoverScreen);
+    showScreenWithFade(scoreScreen);
 }
 // Cycle initial letter up (A→B→C...→Z→A)
 function cycleInitialUp(index) {
@@ -342,7 +399,7 @@ function submitScore() {
     // TODO: Send to Supabase
     showLeaderboard();
 }
-// Show leaderboard (placeholder for Supabase integration)
+// Show leaderboard
 function showLeaderboard() {
     // TODO: Fetch from Supabase
     // For now, show placeholder
@@ -357,16 +414,40 @@ function showLeaderboard() {
     `;
     showScreen(leaderboardScreen);
 }
+// Go to main menu
+function goToMainMenu() {
+    updateToggleDisplays();
+    showScreen(mainMenuScreen);
+}
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    // Event listeners
+    // Instructions popup
     gotItButton.addEventListener('click', () => {
         markInstructionsSeen();
-        showScreen(startScreen);
+        goToMainMenu();
     });
-    startButton.addEventListener('click', startGame);
-    gameplayScreen.addEventListener('click', handleGameplayTap);
+    // Main Menu
+    startGameButton.addEventListener('click', goToStartScreen);
+    helpButton.addEventListener('click', () => {
+        showInstructions();
+    });
+    leaderboardButton.addEventListener('click', showLeaderboard);
+    // Toggle handlers (placeholder functionality for Phase 2)
+    modeToggle.addEventListener('click', () => {
+        gameMode = gameMode === 'sudden-death' ? 'one-tap' : 'sudden-death';
+        updateToggleDisplays();
+    });
+    ringToggle.addEventListener('click', () => {
+        ringEnabled = !ringEnabled;
+        updateToggleDisplays();
+    });
+    // Start Screen
+    startScreen.addEventListener('click', handleStartScreenTap);
+    startScreen.addEventListener('touchstart', handleStartScreenTap);
+    // Gameplay Screen
+    gameplayScreen.addEventListener('mousedown', handleGameplayTap);
     gameplayScreen.addEventListener('touchstart', handleGameplayTap);
+    // Score Screen
     arrowButtons.forEach((btn) => {
         btn.addEventListener('click', (e) => {
             var _a;
@@ -381,21 +462,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     submitButton.addEventListener('click', submitScore);
-    newGameButton.addEventListener('click', () => {
-        resetGame();
-        showScreen(startScreen);
-    });
-    newGameOnlyButton.addEventListener('click', () => {
-        resetGame();
-        showScreen(startScreen);
-    });
+    menuFromScoreButton.addEventListener('click', goToMainMenu);
+    // Leaderboard
+    menuFromLeaderboardButton.addEventListener('click', goToMainMenu);
     // Initialize
     detectDevice();
     initUserId();
     loadInitials();
-    // Show instructions or start screen
+    updateToggleDisplays();
+    // Show instructions or main menu
     if (hasSeenInstructions()) {
-        showScreen(startScreen);
+        goToMainMenu();
     }
     else {
         showInstructions();

@@ -21,52 +21,39 @@
             </div>
         </div>
 
+        <!-- Main Menu Screen -->
+        <div id="main-menu-screen" class="screen hidden">
+            <h1 class="menu-title">TIME DEBT</h1>
+            <div class="menu-options">
+                <div class="menu-option">
+                    <span class="option-label">MODE</span>
+                    <span class="option-value" id="mode-toggle">SUDDEN DEATH</span>
+                </div>
+                <div class="menu-option">
+                    <span class="option-label">RING</span>
+                    <span class="option-value" id="ring-toggle">ON</span>
+                </div>
+            </div>
+            <button id="start-game-button" class="arcade-button">START</button>
+            <div class="menu-icons">
+                <button id="help-button" class="icon-button">?</button>
+                <button id="leaderboard-button" class="icon-button">🏆</button>
+            </div>
+        </div>
+
         <!-- Start Screen -->
         <div id="start-screen" class="screen hidden">
             <div class="timer-container">
-                <svg class="timer-ring" viewBox="0 0 200 200">
-                    <circle 
-                        class="timer-ring-circle" 
-                        cx="100" 
-                        cy="100" 
-                        r="90"
-                        fill="none"
-                        stroke="#e0e0e0"
-                        stroke-width="8"
-                    />
-                </svg>
+                <div id="start-timer-ring" class="timer-ring"></div>
                 <div id="timer-display" class="timer">1.000</div>
             </div>
-            <button id="start-button" class="arcade-button">START</button>
+            <div id="start-instruction">tap anywhere to begin</div>
         </div>
 
         <!-- Gameplay Screen -->
         <div id="gameplay-screen" class="screen hidden">
             <div class="timer-container">
-                <svg class="timer-ring" viewBox="0 0 200 200">
-                    <circle 
-                        id="timer-ring-bg"
-                        class="timer-ring-circle timer-ring-bg" 
-                        cx="100" 
-                        cy="100" 
-                        r="90"
-                        fill="none"
-                        stroke="#333"
-                        stroke-width="8"
-                    />
-                    <circle 
-                        id="timer-ring-progress"
-                        class="timer-ring-circle timer-ring-progress" 
-                        cx="100" 
-                        cy="100" 
-                        r="90"
-                        fill="none"
-                        stroke="#e0e0e0"
-                        stroke-width="8"
-                        stroke-linecap="butt"
-                        transform="rotate(-90 100 100)"
-                    />
-                </svg>
+                <div id="timer-ring" class="timer-ring"></div>
                 <div id="timer" class="timer">1.000</div>
             </div>
             <div id="score">0</div>
@@ -75,6 +62,11 @@
 
         <!-- Game Over Screen -->
         <div id="gameover-screen" class="screen hidden">
+            <div class="gameover-text">GAME OVER</div>
+        </div>
+
+        <!-- Score Screen -->
+        <div id="score-screen" class="screen hidden">
             <div class="score-taps-row">
                 <div class="score-box">
                     <label>SCORE</label>
@@ -107,14 +99,14 @@
                 </div>
                 <button id="submit-button" class="arcade-button">SUBMIT</button>
             </div>
-            <button id="newgame-only-button" class="arcade-button hidden">NEW GAME</button>
+            <button id="menu-from-score-button" class="arcade-button hidden">MAIN MENU</button>
         </div>
 
         <!-- Leaderboard Screen -->
         <div id="leaderboard-screen" class="screen hidden">
             <div id="leaderboard-title">LEADERBOARD</div>
             <div id="leaderboard-list"></div>
-            <button id="newgame-button" class="arcade-button">NEW GAME</button>
+            <button id="menu-from-leaderboard-button" class="arcade-button">MAIN MENU</button>
         </div>
     </div>
     <script src="game.js"></script>

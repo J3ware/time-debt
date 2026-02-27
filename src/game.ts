@@ -24,8 +24,9 @@ const POINTS = {
     bad: 0
 };
 
-// Ring constants
-const RING_CIRCUMFERENCE = 2 * Math.PI * 90; // ~565.49
+// Settings (will be persisted in Phase 2)
+let gameMode: 'sudden-death' | 'one-tap' = 'sudden-death';
+let ringEnabled: boolean = true;
 
 // Player data
 let currentInitials: string[] = ['A', 'A', 'A'];
@@ -34,23 +35,32 @@ let userId: string = '';
 
 // DOM elements - Screens
 const instructionsPopup = document.getElementById('instructions-popup') as HTMLElement;
+const mainMenuScreen = document.getElementById('main-menu-screen') as HTMLElement;
 const startScreen = document.getElementById('start-screen') as HTMLElement;
 const gameplayScreen = document.getElementById('gameplay-screen') as HTMLElement;
 const gameoverScreen = document.getElementById('gameover-screen') as HTMLElement;
+const scoreScreen = document.getElementById('score-screen') as HTMLElement;
 const leaderboardScreen = document.getElementById('leaderboard-screen') as HTMLElement;
 
 // DOM elements - Instructions
 const gotItButton = document.getElementById('got-it-button') as HTMLElement;
 
-// DOM elements - Start screen
-const startButton = document.getElementById('start-button') as HTMLElement;
+// DOM elements - Main Menu
+const startGameButton = document.getElementById('start-game-button') as HTMLElement;
+const helpButton = document.getElementById('help-button') as HTMLElement;
+const leaderboardButton = document.getElementById('leaderboard-button') as HTMLElement;
+const modeToggle = document.getElementById('mode-toggle') as HTMLElement;
+const ringToggle = document.getElementById('ring-toggle') as HTMLElement;
+
+// DOM elements - Start Screen
+const startTimerRing = document.getElementById('start-timer-ring') as HTMLElement;
 
 // DOM elements - Gameplay
 const timerDisplay = document.getElementById('timer') as HTMLElement;
 const scoreDisplay = document.getElementById('score') as HTMLElement;
-const timerRingProgress = document.getElementById('timer-ring-progress') as unknown as SVGCircleElement;
+const timerRing = document.getElementById('timer-ring') as HTMLElement;
 
-// DOM elements - Game over
+// DOM elements - Score Screen
 const finalScoreDisplay = document.getElementById('final-score') as HTMLElement;
 const finalTapsDisplay = document.getElementById('final-taps') as HTMLElement;
 const tierBreakdown = document.getElementById('tier-breakdown') as HTMLElement;
@@ -58,12 +68,12 @@ const initialSlots = document.querySelectorAll('.initial-slot');
 const arrowButtons = document.querySelectorAll('.arrow-btn');
 const submitButton = document.getElementById('submit-button') as HTMLButtonElement;
 const initialsSection = document.getElementById('initials-submit-row') as HTMLElement;
-const newGameOnlyButton = document.getElementById('newgame-only-button') as HTMLButtonElement;
+const menuFromScoreButton = document.getElementById('menu-from-score-button') as HTMLButtonElement;
 const personalBestMessage = document.getElementById('personal-best-message') as HTMLElement;
 
 // DOM elements - Leaderboard
 const leaderboardList = document.getElementById('leaderboard-list') as HTMLElement;
-const newGameButton = document.getElementById('newgame-button') as HTMLElement;
+const menuFromLeaderboardButton = document.getElementById('menu-from-leaderboard-button') as HTMLElement;
 
 // Get current month key (e.g., "2026-02")
 function getCurrentMonthKey(): string {
@@ -139,23 +149,56 @@ function markInstructionsSeen(): void {
     localStorage.setItem('timedebt_instructions_seen', 'true');
 }
 
-// Show a specific screen
+// Show a specific screen (no fade)
 function showScreen(screen: HTMLElement): void {
     instructionsPopup.classList.add('hidden');
+    mainMenuScreen.classList.add('hidden');
     startScreen.classList.add('hidden');
     gameplayScreen.classList.add('hidden');
     gameoverScreen.classList.add('hidden');
+    scoreScreen.classList.add('hidden');
     leaderboardScreen.classList.add('hidden');
+    
+    // Remove any fade classes
+    screen.classList.remove('fade-in');
+    
     screen.classList.remove('hidden');
+}
+
+// Show a screen with fade-in effect
+function showScreenWithFade(screen: HTMLElement): void {
+    instructionsPopup.classList.add('hidden');
+    mainMenuScreen.classList.add('hidden');
+    startScreen.classList.add('hidden');
+    gameplayScreen.classList.add('hidden');
+    gameoverScreen.classList.add('hidden');
+    scoreScreen.classList.add('hidden');
+    leaderboardScreen.classList.add('hidden');
+    
+    screen.classList.remove('hidden');
+    screen.classList.add('fade-in');
 }
 
 // Show instructions popup
 function showInstructions(): void {
-    startScreen.classList.add('hidden');
-    gameplayScreen.classList.add('hidden');
-    gameoverScreen.classList.add('hidden');
-    leaderboardScreen.classList.add('hidden');
     instructionsPopup.classList.remove('hidden');
+}
+
+// Update ring visibility based on setting
+function updateRingVisibility(): void {
+    if (ringEnabled) {
+        timerRing.classList.remove('hidden');
+        startTimerRing.classList.remove('hidden');
+    } else {
+        timerRing.classList.add('hidden');
+        startTimerRing.classList.add('hidden');
+    }
+}
+
+// Update toggle displays
+function updateToggleDisplays(): void {
+    modeToggle.textContent = gameMode === 'sudden-death' ? 'SUDDEN DEATH' : 'ONE TAP';
+    ringToggle.textContent = ringEnabled ? 'ON' : 'OFF';
 }
 
 // Classify a point based on remaining time and add points
@@ -199,17 +242,16 @@ function resetGame(): void {
 
 // Update the timer ring visualization
 function updateRing(): void {
-    // Calculate what percentage of the ORIGINAL 1 second we're showing
-    // maxTime tells us how much of the original time is available
-    // timeRemaining tells us how much of maxTime is left
+    if (!ringEnabled) return;
     
-    // The ring should show: timeRemaining out of the original 1.000
-    // So if maxTime is 0.7 and timeRemaining is 0.5, we show 0.5/1.0 = 50% of the ring
+    const percent = timeRemaining * 100;
     
-    const percentRemaining = timeRemaining; // Since original is always 1.000
-    const offset = RING_CIRCUMFERENCE * (1 - percentRemaining);
-    
-    timerRingProgress.style.strokeDashoffset = offset.toString();
+    timerRing.style.background = `conic-gradient(
+        from 0deg,
+        #e0e0e0 0%,
+        #e0e0e0 ${percent}%,
+        transparent ${percent}%
+    )`;
 }
 
 // Update gameplay display
@@ -244,13 +286,26 @@ function gameLoop(currentTime: number): void {
     requestAnimationFrame(gameLoop);
 }
 
-// Start the game
-function startGame(): void {
+// Go to start screen (pre-game)
+function goToStartScreen(): void {
     resetGame();
+    updateRingVisibility();
+    showScreen(startScreen);
+}
+
+// Start the game (from start screen tap)
+function startGame(): void {
     showScreen(gameplayScreen);
+    updateRingVisibility();
     isRunning = true;
     updateDisplay();
     requestAnimationFrame(gameLoop);
+}
+
+// Handle tap on start screen
+function handleStartScreenTap(e: Event): void {
+    e.preventDefault();
+    startGame();
 }
 
 // Handle tap during gameplay
@@ -270,8 +325,18 @@ function handleGameplayTap(e: Event): void {
     updateDisplay();
 }
 
-// End the game and show game over screen
+// End the game - show game over screen, then transition to score screen
 function endGame(): void {
+    showScreen(gameoverScreen);
+    
+    // After 1 second, fade to score screen
+    setTimeout(() => {
+        showScoreScreen();
+    }, 1000);
+}
+
+// Show the score screen with fade
+function showScoreScreen(): void {
     finalScoreDisplay.textContent = score.toString();
     finalTapsDisplay.textContent = taps.toString();
     tierBreakdown.innerHTML = `
@@ -290,7 +355,7 @@ function endGame(): void {
     if (isNewBest && !alreadySubmitted) {
         // Show initials and submit
         initialsSection.classList.remove('hidden');
-        newGameOnlyButton.classList.add('hidden');
+        menuFromScoreButton.classList.add('hidden');
         personalBestMessage.textContent = 'NEW PERSONAL BEST!';
         personalBestMessage.classList.remove('hidden');
         
@@ -300,9 +365,9 @@ function endGame(): void {
             submitButton.disabled = false;
         }, 500);
     } else {
-        // Show only new game button
+        // Show only main menu button
         initialsSection.classList.add('hidden');
-        newGameOnlyButton.classList.remove('hidden');
+        menuFromScoreButton.classList.remove('hidden');
         
         if (alreadySubmitted) {
             personalBestMessage.textContent = `ALREADY SUBMITTED (BEST: ${monthlyBest})`;
@@ -313,14 +378,14 @@ function endGame(): void {
         }
         personalBestMessage.classList.remove('hidden');
         
-        // Disable new game button for 1 second
-        newGameOnlyButton.disabled = true;
+        // Disable menu button for 1 second
+        menuFromScoreButton.disabled = true;
         setTimeout(() => {
-            newGameOnlyButton.disabled = false;
+            menuFromScoreButton.disabled = false;
         }, 1000);
     }
     
-    showScreen(gameoverScreen);
+    showScreenWithFade(scoreScreen);
 }
 
 // Cycle initial letter up (A→B→C...→Z→A)
@@ -381,7 +446,7 @@ function submitScore(): void {
     showLeaderboard();
 }
 
-// Show leaderboard (placeholder for Supabase integration)
+// Show leaderboard
 function showLeaderboard(): void {
     // TODO: Fetch from Supabase
     // For now, show placeholder
@@ -397,19 +462,49 @@ function showLeaderboard(): void {
     showScreen(leaderboardScreen);
 }
 
+// Go to main menu
+function goToMainMenu(): void {
+    updateToggleDisplays();
+    showScreen(mainMenuScreen);
+}
+
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    // Event listeners
+    // Instructions popup
     gotItButton.addEventListener('click', () => {
         markInstructionsSeen();
-        showScreen(startScreen);
+        goToMainMenu();
     });
 
-    startButton.addEventListener('click', startGame);
+    // Main Menu
+    startGameButton.addEventListener('click', goToStartScreen);
+    
+    helpButton.addEventListener('click', () => {
+        showInstructions();
+    });
+    
+    leaderboardButton.addEventListener('click', showLeaderboard);
+    
+    // Toggle handlers (placeholder functionality for Phase 2)
+    modeToggle.addEventListener('click', () => {
+        gameMode = gameMode === 'sudden-death' ? 'one-tap' : 'sudden-death';
+        updateToggleDisplays();
+    });
+    
+    ringToggle.addEventListener('click', () => {
+        ringEnabled = !ringEnabled;
+        updateToggleDisplays();
+    });
 
-    gameplayScreen.addEventListener('click', handleGameplayTap);
+    // Start Screen
+    startScreen.addEventListener('click', handleStartScreenTap);
+    startScreen.addEventListener('touchstart', handleStartScreenTap);
+
+    // Gameplay Screen
+    gameplayScreen.addEventListener('mousedown', handleGameplayTap);
     gameplayScreen.addEventListener('touchstart', handleGameplayTap);
 
+    // Score Screen
     arrowButtons.forEach((btn) => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -423,25 +518,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     submitButton.addEventListener('click', submitScore);
+    
+    menuFromScoreButton.addEventListener('click', goToMainMenu);
 
-    newGameButton.addEventListener('click', () => {
-        resetGame();
-        showScreen(startScreen);
-    });
-
-    newGameOnlyButton.addEventListener('click', () => {
-        resetGame();
-        showScreen(startScreen);
-    });
+    // Leaderboard
+    menuFromLeaderboardButton.addEventListener('click', goToMainMenu);
 
     // Initialize
     detectDevice();
     initUserId();
     loadInitials();
+    updateToggleDisplays();
 
-    // Show instructions or start screen
+    // Show instructions or main menu
     if (hasSeenInstructions()) {
-        showScreen(startScreen);
+        goToMainMenu();
     } else {
         showInstructions();
     }
