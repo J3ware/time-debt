@@ -6,6 +6,11 @@ let score: number = 0;
 let isRunning: boolean = false;
 let lastFrameTime: number = 0;
 
+// One Tap mode state
+let lives: number = 3;
+let isLocked: boolean = false;
+let isCountingDown: boolean = false;
+
 // Score tiers
 let perfects: number = 0;
 let greats: number = 0;
@@ -24,7 +29,7 @@ const POINTS = {
     bad: 0
 };
 
-// Settings (will be persisted in Phase 2)
+// Settings
 let gameMode: 'sudden-death' | 'one-tap' = 'sudden-death';
 let ringEnabled: boolean = true;
 
@@ -54,11 +59,17 @@ const ringToggle = document.getElementById('ring-toggle') as HTMLElement;
 
 // DOM elements - Start Screen
 const startTimerRing = document.getElementById('start-timer-ring') as HTMLElement;
+const startHearts = document.getElementById('start-hearts') as HTMLElement;
+const startInstruction = document.getElementById('start-instruction') as HTMLElement;
 
 // DOM elements - Gameplay
 const timerDisplay = document.getElementById('timer') as HTMLElement;
 const scoreDisplay = document.getElementById('score') as HTMLElement;
 const timerRing = document.getElementById('timer-ring') as HTMLElement;
+const gameplayHearts = document.getElementById('gameplay-hearts') as HTMLElement;
+const instruction = document.getElementById('instruction') as HTMLElement;
+const countdown = document.getElementById('countdown') as HTMLElement;
+const lifeLost = document.getElementById('life-lost') as HTMLElement;
 
 // DOM elements - Score Screen
 const finalScoreDisplay = document.getElementById('final-score') as HTMLElement;
@@ -214,6 +225,39 @@ function updateRingVisibility(): void {
     }
 }
 
+// Update hearts visibility based on game mode
+function updateHeartsVisibility(): void {
+    if (gameMode === 'one-tap') {
+        startHearts.classList.remove('hidden');
+        gameplayHearts.classList.remove('hidden');
+    } else {
+        startHearts.classList.add('hidden');
+        gameplayHearts.classList.add('hidden');
+    }
+}
+
+// Update hearts display based on lives remaining
+function updateHeartsDisplay(): void {
+    const startHeartElements = startHearts.querySelectorAll('.heart');
+    const gameplayHeartElements = gameplayHearts.querySelectorAll('.heart');
+    
+    startHeartElements.forEach((heart, index) => {
+        if (index < lives) {
+            heart.classList.remove('lost');
+        } else {
+            heart.classList.add('lost');
+        }
+    });
+    
+    gameplayHeartElements.forEach((heart, index) => {
+        if (index < lives) {
+            heart.classList.remove('lost');
+        } else {
+            heart.classList.add('lost');
+        }
+    });
+}
+
 // Update toggle displays
 function updateToggleDisplays(): void {
     modeToggle.textContent = gameMode === 'sudden-death' ? 'SUDDEN DEATH' : 'ONE TAP';
@@ -257,6 +301,17 @@ function resetGame(): void {
     bads = 0;
     isRunning = false;
     lastFrameTime = 0;
+    lives = 3;
+    isLocked = false;
+    isCountingDown = false;
+    
+    // Reset UI elements
+    instruction.textContent = 'tap anywhere';
+    instruction.classList.remove('hidden');
+    countdown.classList.add('hidden');
+    lifeLost.classList.add('hidden');
+    
+    updateHeartsDisplay();
 }
 
 // Update the timer ring visualization
@@ -297,7 +352,7 @@ function gameLoop(currentTime: number): void {
         timeRemaining = 0;
         isRunning = false;
         updateDisplay();
-        endGame();
+        handleTimerZero();
         return;
     }
 
@@ -305,10 +360,77 @@ function gameLoop(currentTime: number): void {
     requestAnimationFrame(gameLoop);
 }
 
+// Handle when timer reaches zero
+function handleTimerZero(): void {
+    if (gameMode === 'sudden-death') {
+        endGame();
+    } else {
+        // One Tap mode - lose a life
+        lives--;
+        updateHeartsDisplay();
+        
+        if (lives <= 0) {
+            endGame();
+        } else {
+            // Show life lost message
+            lifeLost.classList.remove('hidden');
+            instruction.classList.add('hidden');
+            
+            // After 2 seconds, start lockout period
+            setTimeout(() => {
+                lifeLost.classList.add('hidden');
+                startLockoutPeriod();
+            }, 2000);
+        }
+    }
+}
+
+// Start the 2-second lockout period (One Tap mode)
+function startLockoutPeriod(): void {
+    isLocked = true;
+    instruction.classList.add('hidden');
+    
+    // After 2 seconds, show "tap anywhere to continue"
+    setTimeout(() => {
+        isLocked = false;
+        instruction.textContent = 'tap anywhere to continue';
+        instruction.classList.remove('hidden');
+    }, 2000);
+}
+
+// Start countdown sequence (3, 2, 1)
+function startCountdown(): void {
+    isCountingDown = true;
+    instruction.classList.add('hidden');
+    countdown.classList.remove('hidden');
+    
+    let count = 3;
+    countdown.textContent = count.toString();
+    
+    const countdownInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+            countdown.textContent = count.toString();
+        } else {
+            clearInterval(countdownInterval);
+            countdown.classList.add('hidden');
+            isCountingDown = false;
+            
+            // Resume the game
+            instruction.textContent = 'tap anywhere';
+            instruction.classList.remove('hidden');
+            isRunning = true;
+            lastFrameTime = 0;
+            requestAnimationFrame(gameLoop);
+        }
+    }, 1000);
+}
+
 // Go to start screen (pre-game)
 function goToStartScreen(): void {
     resetGame();
     updateRingVisibility();
+    updateHeartsVisibility();
     showScreen(startScreen);
 }
 
@@ -316,6 +438,7 @@ function goToStartScreen(): void {
 function startGame(): void {
     showScreen(gameplayScreen);
     updateRingVisibility();
+    updateHeartsVisibility();
     isRunning = true;
     updateDisplay();
     requestAnimationFrame(gameLoop);
@@ -329,8 +452,21 @@ function handleStartScreenTap(e: Event): void {
 
 // Handle tap during gameplay
 function handleGameplayTap(e: Event): void {
-    if (!isRunning) return;
     e.preventDefault();
+    
+    // Ignore taps during lockout or countdown
+    if (isLocked || isCountingDown) return;
+    
+    if (gameMode === 'sudden-death') {
+        handleSuddenDeathTap();
+    } else {
+        handleOneTapTap();
+    }
+}
+
+// Handle tap in Sudden Death mode
+function handleSuddenDeathTap(): void {
+    if (!isRunning) return;
 
     taps++;
     classifyPoint(timeRemaining);
@@ -342,6 +478,27 @@ function handleGameplayTap(e: Event): void {
     timeRemaining = maxTime;
     lastFrameTime = 0;
     updateDisplay();
+}
+
+// Handle tap in One Tap mode
+function handleOneTapTap(): void {
+    if (isRunning) {
+        // First tap - stop the clock
+        isRunning = false;
+        taps++;
+        classifyPoint(timeRemaining);
+        
+        // Accumulate debt
+        maxTime = maxTime - timeRemaining;
+        timeRemaining = maxTime;
+        updateDisplay();
+        
+        // Start lockout period
+        startLockoutPeriod();
+    } else if (!isLocked && !isCountingDown) {
+        // Second tap (after lockout) - start countdown
+        startCountdown();
+    }
 }
 
 // End the game - show game over screen, then transition to score screen
@@ -505,17 +662,17 @@ document.addEventListener('DOMContentLoaded', () => {
     leaderboardButton.addEventListener('click', showLeaderboard);
     
     // Toggle handlers
-modeToggle.addEventListener('click', () => {
-    gameMode = gameMode === 'sudden-death' ? 'one-tap' : 'sudden-death';
-    updateToggleDisplays();
-    saveSettings();
-});
-
-ringToggle.addEventListener('click', () => {
-    ringEnabled = !ringEnabled;
-    updateToggleDisplays();
-    saveSettings();
-});
+    modeToggle.addEventListener('click', () => {
+        gameMode = gameMode === 'sudden-death' ? 'one-tap' : 'sudden-death';
+        updateToggleDisplays();
+        saveSettings();
+    });
+    
+    ringToggle.addEventListener('click', () => {
+        ringEnabled = !ringEnabled;
+        updateToggleDisplays();
+        saveSettings();
+    });
 
     // Start Screen
     startScreen.addEventListener('click', handleStartScreenTap);
@@ -546,11 +703,11 @@ ringToggle.addEventListener('click', () => {
     menuFromLeaderboardButton.addEventListener('click', goToMainMenu);
 
     // Initialize
-detectDevice();
-initUserId();
-loadInitials();
-loadSettings();
-updateToggleDisplays();
+    detectDevice();
+    initUserId();
+    loadInitials();
+    loadSettings();
+    updateToggleDisplays();
 
     // Show instructions or main menu
     if (hasSeenInstructions()) {

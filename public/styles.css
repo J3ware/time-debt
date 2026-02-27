@@ -31,6 +31,7 @@ body {
     align-items: center;
     width: 100%;
     height: 100%;
+    position: relative;
 }
 
 .screen.hidden {
@@ -49,6 +50,29 @@ body {
     to {
         opacity: 1;
     }
+}
+
+/* Hearts display */
+.hearts {
+    position: absolute;
+    top: 3vh;
+    right: 4vw;
+    display: flex;
+    gap: 0.5rem;
+    font-size: 1.5rem;
+}
+
+.hearts.hidden {
+    display: none;
+}
+
+.heart {
+    color: #e0e0e0;
+    transition: opacity 0.3s ease;
+}
+
+.heart.lost {
+    opacity: 0.2;
 }
 
 /* Timer Ring Container */
@@ -103,6 +127,31 @@ body {
     z-index: 1;
 }
 
+/* Countdown overlay */
+.countdown {
+    position: absolute;
+    font-size: 20vmin;
+    color: #e0e0e0;
+    z-index: 2;
+}
+
+.countdown.hidden {
+    display: none;
+}
+
+/* Life lost message */
+.life-lost {
+    position: absolute;
+    font-size: 3rem;
+    color: #e0e0e0;
+    letter-spacing: 0.1em;
+    z-index: 10;
+}
+
+.life-lost.hidden {
+    display: none;
+}
+
 #score {
     font-size: 8vw;
     margin-top: 2vh;
@@ -115,6 +164,11 @@ body {
     bottom: 5vh;
     font-size: 3vw;
     color: #555;
+}
+
+#instruction.hidden,
+#start-instruction.hidden {
+    visibility: hidden;
 }
 
 .arcade-button {
@@ -376,6 +430,20 @@ body {
         font-size: 18vmin;
     }
 
+    .countdown {
+        font-size: 25vmin;
+    }
+
+    .hearts {
+        font-size: 6vw;
+        top: 4vh;
+        right: 5vw;
+    }
+
+    .life-lost {
+        font-size: 8vw;
+    }
+
     .arcade-button {
         font-size: 6vw;
         padding: 2vh 8vw;
@@ -478,6 +546,19 @@ body {
     
     .timer {
         font-size: 12vmin;
+    }
+
+    .countdown {
+        font-size: 15vmin;
+    }
+
+    .hearts {
+        font-size: 4vh;
+        top: 2vh;
+    }
+
+    .life-lost {
+        font-size: 6vh;
     }
     
     #score {

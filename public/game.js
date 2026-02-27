@@ -6,6 +6,10 @@ let taps = 0;
 let score = 0;
 let isRunning = false;
 let lastFrameTime = 0;
+// One Tap mode state
+let lives = 3;
+let isLocked = false;
+let isCountingDown = false;
 // Score tiers
 let perfects = 0;
 let greats = 0;
@@ -22,7 +26,7 @@ const POINTS = {
     poor: 5,
     bad: 0
 };
-// Settings (will be persisted in Phase 2)
+// Settings
 let gameMode = 'sudden-death';
 let ringEnabled = true;
 // Player data
@@ -47,10 +51,16 @@ const modeToggle = document.getElementById('mode-toggle');
 const ringToggle = document.getElementById('ring-toggle');
 // DOM elements - Start Screen
 const startTimerRing = document.getElementById('start-timer-ring');
+const startHearts = document.getElementById('start-hearts');
+const startInstruction = document.getElementById('start-instruction');
 // DOM elements - Gameplay
 const timerDisplay = document.getElementById('timer');
 const scoreDisplay = document.getElementById('score');
 const timerRing = document.getElementById('timer-ring');
+const gameplayHearts = document.getElementById('gameplay-hearts');
+const instruction = document.getElementById('instruction');
+const countdown = document.getElementById('countdown');
+const lifeLost = document.getElementById('life-lost');
 // DOM elements - Score Screen
 const finalScoreDisplay = document.getElementById('final-score');
 const finalTapsDisplay = document.getElementById('final-taps');
@@ -185,6 +195,38 @@ function updateRingVisibility() {
         startTimerRing.classList.add('hidden');
     }
 }
+// Update hearts visibility based on game mode
+function updateHeartsVisibility() {
+    if (gameMode === 'one-tap') {
+        startHearts.classList.remove('hidden');
+        gameplayHearts.classList.remove('hidden');
+    }
+    else {
+        startHearts.classList.add('hidden');
+        gameplayHearts.classList.add('hidden');
+    }
+}
+// Update hearts display based on lives remaining
+function updateHeartsDisplay() {
+    const startHeartElements = startHearts.querySelectorAll('.heart');
+    const gameplayHeartElements = gameplayHearts.querySelectorAll('.heart');
+    startHeartElements.forEach((heart, index) => {
+        if (index < lives) {
+            heart.classList.remove('lost');
+        }
+        else {
+            heart.classList.add('lost');
+        }
+    });
+    gameplayHeartElements.forEach((heart, index) => {
+        if (index < lives) {
+            heart.classList.remove('lost');
+        }
+        else {
+            heart.classList.add('lost');
+        }
+    });
+}
 // Update toggle displays
 function updateToggleDisplays() {
     modeToggle.textContent = gameMode === 'sudden-death' ? 'SUDDEN DEATH' : 'ONE TAP';
@@ -231,6 +273,15 @@ function resetGame() {
     bads = 0;
     isRunning = false;
     lastFrameTime = 0;
+    lives = 3;
+    isLocked = false;
+    isCountingDown = false;
+    // Reset UI elements
+    instruction.textContent = 'tap anywhere';
+    instruction.classList.remove('hidden');
+    countdown.classList.add('hidden');
+    lifeLost.classList.add('hidden');
+    updateHeartsDisplay();
 }
 // Update the timer ring visualization
 function updateRing() {
@@ -264,22 +315,84 @@ function gameLoop(currentTime) {
         timeRemaining = 0;
         isRunning = false;
         updateDisplay();
-        endGame();
+        handleTimerZero();
         return;
     }
     updateDisplay();
     requestAnimationFrame(gameLoop);
 }
+// Handle when timer reaches zero
+function handleTimerZero() {
+    if (gameMode === 'sudden-death') {
+        endGame();
+    }
+    else {
+        // One Tap mode - lose a life
+        lives--;
+        updateHeartsDisplay();
+        if (lives <= 0) {
+            endGame();
+        }
+        else {
+            // Show life lost message
+            lifeLost.classList.remove('hidden');
+            instruction.classList.add('hidden');
+            // After 2 seconds, start lockout period
+            setTimeout(() => {
+                lifeLost.classList.add('hidden');
+                startLockoutPeriod();
+            }, 2000);
+        }
+    }
+}
+// Start the 2-second lockout period (One Tap mode)
+function startLockoutPeriod() {
+    isLocked = true;
+    instruction.classList.add('hidden');
+    // After 2 seconds, show "tap anywhere to continue"
+    setTimeout(() => {
+        isLocked = false;
+        instruction.textContent = 'tap anywhere to continue';
+        instruction.classList.remove('hidden');
+    }, 2000);
+}
+// Start countdown sequence (3, 2, 1)
+function startCountdown() {
+    isCountingDown = true;
+    instruction.classList.add('hidden');
+    countdown.classList.remove('hidden');
+    let count = 3;
+    countdown.textContent = count.toString();
+    const countdownInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+            countdown.textContent = count.toString();
+        }
+        else {
+            clearInterval(countdownInterval);
+            countdown.classList.add('hidden');
+            isCountingDown = false;
+            // Resume the game
+            instruction.textContent = 'tap anywhere';
+            instruction.classList.remove('hidden');
+            isRunning = true;
+            lastFrameTime = 0;
+            requestAnimationFrame(gameLoop);
+        }
+    }, 1000);
+}
 // Go to start screen (pre-game)
 function goToStartScreen() {
     resetGame();
     updateRingVisibility();
+    updateHeartsVisibility();
     showScreen(startScreen);
 }
 // Start the game (from start screen tap)
 function startGame() {
     showScreen(gameplayScreen);
     updateRingVisibility();
+    updateHeartsVisibility();
     isRunning = true;
     updateDisplay();
     requestAnimationFrame(gameLoop);
@@ -291,9 +404,21 @@ function handleStartScreenTap(e) {
 }
 // Handle tap during gameplay
 function handleGameplayTap(e) {
+    e.preventDefault();
+    // Ignore taps during lockout or countdown
+    if (isLocked || isCountingDown)
+        return;
+    if (gameMode === 'sudden-death') {
+        handleSuddenDeathTap();
+    }
+    else {
+        handleOneTapTap();
+    }
+}
+// Handle tap in Sudden Death mode
+function handleSuddenDeathTap() {
     if (!isRunning)
         return;
-    e.preventDefault();
     taps++;
     classifyPoint(timeRemaining);
     // Subtract remaining time from maxTime (accumulate debt)
@@ -302,6 +427,25 @@ function handleGameplayTap(e) {
     timeRemaining = maxTime;
     lastFrameTime = 0;
     updateDisplay();
+}
+// Handle tap in One Tap mode
+function handleOneTapTap() {
+    if (isRunning) {
+        // First tap - stop the clock
+        isRunning = false;
+        taps++;
+        classifyPoint(timeRemaining);
+        // Accumulate debt
+        maxTime = maxTime - timeRemaining;
+        timeRemaining = maxTime;
+        updateDisplay();
+        // Start lockout period
+        startLockoutPeriod();
+    }
+    else if (!isLocked && !isCountingDown) {
+        // Second tap (after lockout) - start countdown
+        startCountdown();
+    }
 }
 // End the game - show game over screen, then transition to score screen
 function endGame() {

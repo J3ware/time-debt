@@ -43,6 +43,11 @@
 
         <!-- Start Screen -->
         <div id="start-screen" class="screen hidden">
+            <div id="start-hearts" class="hearts hidden">
+                <span class="heart">♥</span>
+                <span class="heart">♥</span>
+                <span class="heart">♥</span>
+            </div>
             <div class="timer-container">
                 <div id="start-timer-ring" class="timer-ring"></div>
                 <div id="timer-display" class="timer">1.000</div>
@@ -52,12 +57,19 @@
 
         <!-- Gameplay Screen -->
         <div id="gameplay-screen" class="screen hidden">
+            <div id="gameplay-hearts" class="hearts hidden">
+                <span class="heart">♥</span>
+                <span class="heart">♥</span>
+                <span class="heart">♥</span>
+            </div>
             <div class="timer-container">
                 <div id="timer-ring" class="timer-ring"></div>
                 <div id="timer" class="timer">1.000</div>
+                <div id="countdown" class="countdown hidden"></div>
             </div>
             <div id="score">0</div>
             <div id="instruction">tap anywhere</div>
+            <div id="life-lost" class="life-lost hidden">LIFE LOST</div>
         </div>
 
         <!-- Game Over Screen -->
