@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 // Game state
 let timeRemaining = 1.000;
 let maxTime = 1.000;
@@ -123,7 +122,8 @@ function loadInitials() {
     if (stored) {
         currentInitials = stored.split('');
         initialSlots.forEach((slot, index) => {
-            slot.textContent = currentInitials[index] ?? 'A';
+            var _a;
+            slot.textContent = (_a = currentInitials[index]) !== null && _a !== void 0 ? _a : 'A';
         });
     }
 }
@@ -507,7 +507,8 @@ function showScoreScreen() {
 }
 // Cycle initial letter up (A→B→C...→Z→A)
 function cycleInitialUp(index) {
-    let char = currentInitials[index] ?? 'A';
+    var _a;
+    let char = (_a = currentInitials[index]) !== null && _a !== void 0 ? _a : 'A';
     if (char === 'Z') {
         char = 'A';
     }
@@ -522,7 +523,8 @@ function cycleInitialUp(index) {
 }
 // Cycle initial letter down (A→Z→Y...→B→A)
 function cycleInitialDown(index) {
-    let char = currentInitials[index] ?? 'A';
+    var _a;
+    let char = (_a = currentInitials[index]) !== null && _a !== void 0 ? _a : 'A';
     if (char === 'A') {
         char = 'Z';
     }
@@ -611,8 +613,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Score Screen
     arrowButtons.forEach((btn) => {
         btn.addEventListener('click', (e) => {
+            var _a;
             e.preventDefault();
-            const index = parseInt(btn.getAttribute('data-index') ?? '0');
+            const index = parseInt((_a = btn.getAttribute('data-index')) !== null && _a !== void 0 ? _a : '0');
             if (btn.classList.contains('up')) {
                 cycleInitialUp(index);
             }
