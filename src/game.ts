@@ -495,16 +495,21 @@ function handleGameplayTap(e: Event): void {
 function handleSuddenDeathTap(): void {
     if (!isRunning) return;
 
+    // Freeze timer immediately so the tap feels like it lands
+    isRunning = false;
     taps++;
     classifyPoint(timeRemaining);
-    
-    // Subtract remaining time from maxTime (accumulate debt)
-    maxTime = maxTime - timeRemaining;
-    
-    // Reset timer to new maxTime
-    timeRemaining = maxTime;
-    lastFrameTime = 0;
     updateDisplay();
+
+    // 80ms beat pause, then apply debt and resume
+    setTimeout(() => {
+        maxTime = maxTime - timeRemaining;
+        timeRemaining = maxTime;
+        updateDisplay();
+        isRunning = true;
+        lastFrameTime = 0;
+        requestAnimationFrame(gameLoop);
+    }, 80);
 }
 
 // Handle tap in One Tap mode
