@@ -448,12 +448,22 @@ function showTooEarly(): void {
     el.addEventListener('animationend', () => el.remove());
 }
 
+const TIER_COLORS: Record<string, string> = {
+    PERFECT: '#ffd700',
+    GREAT:   '#4ade80',
+    GOOD:    '#86efac',
+    FINE:    '#ffffff',
+    POOR:    '#fb923c',
+    BAD:     '#ef4444',
+};
+
 // Spawn a floating debt popup for this tap (stacks with concurrent popups)
 function showDebt(amount: number, tierLabel: string, points: number): void {
+    const tierColor = TIER_COLORS[tierLabel] ?? '#e0e0e0';
     const popup = document.createElement('div');
     popup.className = 'debt-popup';
     popup.innerHTML = `
-        <div class="debt-tier">${tierLabel}</div>
+        <div class="debt-tier" style="color:${tierColor}">${tierLabel}</div>
         <div class="debt-points">+${points}</div>
         <div class="debt-amount">-${amount.toFixed(3)}</div>
     `;

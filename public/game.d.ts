@@ -93,6 +93,7 @@ declare function getTierInfo(remaining: number): {
 };
 declare function triggerFlash(): void;
 declare function showTooEarly(): void;
+declare const TIER_COLORS: Record<string, string>;
 declare function showDebt(amount: number, tierLabel: string, points: number): void;
 declare function animateFillUp(target: number): Promise<void>;
 declare function updateMaxDisplay(): void;

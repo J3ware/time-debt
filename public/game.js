@@ -399,12 +399,22 @@ function showTooEarly() {
     gameplayScreen.appendChild(el);
     el.addEventListener('animationend', () => el.remove());
 }
+const TIER_COLORS = {
+    PERFECT: '#ffd700',
+    GREAT: '#4ade80',
+    GOOD: '#86efac',
+    FINE: '#ffffff',
+    POOR: '#fb923c',
+    BAD: '#ef4444',
+};
 // Spawn a floating debt popup for this tap (stacks with concurrent popups)
 function showDebt(amount, tierLabel, points) {
+    var _a;
+    const tierColor = (_a = TIER_COLORS[tierLabel]) !== null && _a !== void 0 ? _a : '#e0e0e0';
     const popup = document.createElement('div');
     popup.className = 'debt-popup';
     popup.innerHTML = `
-        <div class="debt-tier">${tierLabel}</div>
+        <div class="debt-tier" style="color:${tierColor}">${tierLabel}</div>
         <div class="debt-points">+${points}</div>
         <div class="debt-amount">-${amount.toFixed(3)}</div>
     `;
