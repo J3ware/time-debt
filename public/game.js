@@ -58,6 +58,7 @@ const countdown = document.getElementById('countdown');
 const timerContainer = document.getElementById('timer-container');
 const maxDisplay = document.getElementById('max-display');
 const lifeLost = document.getElementById('life-lost');
+const tapFlash = document.getElementById('tap-flash');
 // DOM elements - Score Screen
 const finalScoreDisplay = document.getElementById('final-score');
 const finalTapsDisplay = document.getElementById('final-taps');
@@ -371,6 +372,12 @@ function getTierInfo(remaining) {
         return { label: 'POOR', points: POINTS.poor };
     return { label: 'BAD', points: POINTS.bad };
 }
+// Brief full-screen flash to confirm a tap registered
+function triggerFlash() {
+    tapFlash.classList.remove('flash');
+    void tapFlash.offsetWidth; // force reflow to restart animation
+    tapFlash.classList.add('flash');
+}
 // Show "TOO EARLY!" above the timer for early taps
 function showTooEarly() {
     const el = document.createElement('div');
@@ -450,6 +457,7 @@ function handleSuddenDeathTap() {
         return;
     // Freeze timer immediately so the tap feels like it lands
     isRunning = false;
+    triggerFlash();
     taps++;
     const debt = timeRemaining;
     const tier = getTierInfo(debt);

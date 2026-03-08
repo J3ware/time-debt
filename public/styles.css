@@ -199,6 +199,25 @@ body {
     display: none;
 }
 
+/* Tap confirmation flash */
+#tap-flash {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 20;
+}
+
+#tap-flash.flash {
+    animation: tapFlash 80ms ease-out forwards;
+}
+
+@keyframes tapFlash {
+    0%   { opacity: 0.3; }
+    100% { opacity: 0; }
+}
+
 /* Countdown overlay */
 .countdown {
     position: absolute;

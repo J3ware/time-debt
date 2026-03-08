@@ -47,6 +47,7 @@ declare const countdown: HTMLElement;
 declare const timerContainer: HTMLElement;
 declare const maxDisplay: HTMLElement;
 declare const lifeLost: HTMLElement;
+declare const tapFlash: HTMLElement;
 declare const finalScoreDisplay: HTMLElement;
 declare const finalTapsDisplay: HTMLElement;
 declare const tierBreakdown: HTMLElement;
@@ -90,6 +91,7 @@ declare function getTierInfo(remaining: number): {
     label: string;
     points: number;
 };
+declare function triggerFlash(): void;
 declare function showTooEarly(): void;
 declare function showDebt(amount: number, tierLabel: string, points: number): void;
 declare function animateFillUp(target: number): Promise<void>;
