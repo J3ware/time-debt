@@ -49,7 +49,8 @@ declare const timerRing: HTMLElement;
 declare const gameplayHearts: HTMLElement;
 declare const instruction: HTMLElement;
 declare const countdown: HTMLElement;
-declare const debtDisplay: HTMLElement;
+declare const timerContainer: HTMLElement;
+declare const maxDisplay: HTMLElement;
 declare const lifeLost: HTMLElement;
 declare const finalScoreDisplay: HTMLElement;
 declare const finalTapsDisplay: HTMLElement;
@@ -100,6 +101,7 @@ declare function getTierInfo(remaining: number): {
     points: number;
 };
 declare function showDebt(amount: number, tierLabel: string, points: number): void;
+declare function updateMaxDisplay(): void;
 declare function handleSuddenDeathTap(): void;
 declare function handleOneTapTap(): void;
 declare function endGame(): void;

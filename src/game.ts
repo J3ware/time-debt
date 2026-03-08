@@ -70,7 +70,8 @@ const timerRing = document.getElementById('timer-ring') as HTMLElement;
 const gameplayHearts = document.getElementById('gameplay-hearts') as HTMLElement;
 const instruction = document.getElementById('instruction') as HTMLElement;
 const countdown = document.getElementById('countdown') as HTMLElement;
-const debtDisplay = document.getElementById('debt-display') as HTMLElement;
+const timerContainer = document.getElementById('timer-container') as HTMLElement;
+const maxDisplay = document.getElementById('max-display') as HTMLElement;
 const lifeLost = document.getElementById('life-lost') as HTMLElement;
 
 // DOM elements - Score Screen
@@ -312,7 +313,8 @@ function resetGame(): void {
     instruction.textContent = 'tap anywhere';
     instruction.classList.remove('hidden');
     countdown.classList.add('hidden');
-    debtDisplay.classList.remove('show-debt');
+    gameplayScreen.querySelectorAll('.debt-popup').forEach(el => el.remove());
+    maxDisplay.classList.add('hidden');
     lifeLost.classList.add('hidden');
     
     updateHeartsDisplay();
@@ -422,6 +424,7 @@ function startReadySetGo(): void {
                 instruction.classList.remove('hidden');
                 isRunning = true;
                 lastFrameTime = 0;
+                updateMaxDisplay();
                 requestAnimationFrame(gameLoop);
             }, 400);
         }, 800);
@@ -503,16 +506,31 @@ function getTierInfo(remaining: number): { label: string; points: number } {
     return                         { label: 'BAD',     points: POINTS.bad };
 }
 
-// Flash tier, points, and debt amount after a tap
+// Spawn a floating debt popup for this tap (stacks with concurrent popups)
 function showDebt(amount: number, tierLabel: string, points: number): void {
-    debtDisplay.innerHTML = `
+    const popup = document.createElement('div');
+    popup.className = 'debt-popup';
+    popup.innerHTML = `
         <div class="debt-tier">${tierLabel}</div>
         <div class="debt-points">+${points}</div>
         <div class="debt-amount">-${amount.toFixed(3)}</div>
     `;
-    debtDisplay.classList.remove('show-debt');
-    void debtDisplay.offsetWidth; // force reflow to restart animation
-    debtDisplay.classList.add('show-debt');
+
+    // Anchor to the bottom-center of the timer container
+    const containerRect = timerContainer.getBoundingClientRect();
+    const screenRect = gameplayScreen.getBoundingClientRect();
+    popup.style.top  = `${containerRect.bottom - screenRect.top}px`;
+    popup.style.left = `${containerRect.left + containerRect.width / 2 - screenRect.left}px`;
+
+    gameplayScreen.appendChild(popup);
+    popup.addEventListener('animationend', () => popup.remove());
+}
+
+// Show/update the max time display (Sudden Death only)
+function updateMaxDisplay(): void {
+    if (gameMode !== 'sudden-death') return;
+    maxDisplay.textContent = `MAX: ${maxTime.toFixed(3)}`;
+    maxDisplay.classList.remove('hidden');
 }
 
 // Handle tap in Sudden Death mode
@@ -533,6 +551,7 @@ function handleSuddenDeathTap(): void {
         maxTime = maxTime - debt;
         timeRemaining = maxTime;
         updateDisplay();
+        updateMaxDisplay();
         isRunning = true;
         lastFrameTime = 0;
         requestAnimationFrame(gameLoop);
