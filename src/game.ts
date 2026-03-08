@@ -535,6 +535,42 @@ function showDebt(amount: number, tierLabel: string, points: number): void {
     popup.addEventListener('animationend', () => popup.remove());
 }
 
+// Animate the timer counting up from its current value to target (Bounce mode)
+// Duration is proportional: filling 1.000 takes 1000ms
+function animateFillUp(target: number): Promise<void> {
+    return new Promise((resolve) => {
+        const startValue = timeRemaining;
+        const duration = (target - startValue) * 1000;
+
+        if (duration <= 0) {
+            timeRemaining = target;
+            updateDisplay();
+            resolve();
+            return;
+        }
+
+        let startTime: number | null = null;
+
+        function frame(currentTime: number): void {
+            if (startTime === null) startTime = currentTime;
+            const progress = Math.min((currentTime - startTime) / duration, 1);
+
+            timeRemaining = startValue + (target - startValue) * progress;
+            updateDisplay();
+
+            if (progress < 1) {
+                requestAnimationFrame(frame);
+            } else {
+                timeRemaining = target;
+                updateDisplay();
+                resolve();
+            }
+        }
+
+        requestAnimationFrame(frame);
+    });
+}
+
 // Show/update the max time display (Sudden Death only)
 function updateMaxDisplay(): void {
     if (gameMode !== 'sudden-death') return;
@@ -555,12 +591,20 @@ function handleSuddenDeathTap(): void {
     updateDisplay();
     showDebt(debt, tier.label, tier.points);
 
-    // 80ms beat pause, then apply debt and resume
-    setTimeout(() => {
+    // 400ms freeze, then apply debt and resume
+    setTimeout(async () => {
         maxTime = maxTime - debt;
-        timeRemaining = maxTime;
-        updateDisplay();
         updateMaxDisplay();
+
+        if (bounceEnabled) {
+            // Animate the timer filling up to the new maxTime, then pause before resuming
+            await animateFillUp(maxTime);
+            await new Promise<void>(resolve => setTimeout(resolve, 400));
+        } else {
+            timeRemaining = maxTime;
+            updateDisplay();
+        }
+
         isRunning = true;
         lastFrameTime = 0;
         requestAnimationFrame(gameLoop);

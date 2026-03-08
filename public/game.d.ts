@@ -103,6 +103,7 @@ declare function getTierInfo(remaining: number): {
     points: number;
 };
 declare function showDebt(amount: number, tierLabel: string, points: number): void;
+declare function animateFillUp(target: number): Promise<void>;
 declare function updateMaxDisplay(): void;
 declare function handleSuddenDeathTap(): void;
 declare function handleOneTapTap(): void;
