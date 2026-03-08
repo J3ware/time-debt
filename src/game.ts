@@ -555,7 +555,7 @@ function handleSuddenDeathTap(): void {
         isRunning = true;
         lastFrameTime = 0;
         requestAnimationFrame(gameLoop);
-    }, 80);
+    }, 400);
 }
 
 // Handle tap in One Tap mode
