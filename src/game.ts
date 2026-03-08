@@ -70,6 +70,7 @@ const timerRing = document.getElementById('timer-ring') as HTMLElement;
 const gameplayHearts = document.getElementById('gameplay-hearts') as HTMLElement;
 const instruction = document.getElementById('instruction') as HTMLElement;
 const countdown = document.getElementById('countdown') as HTMLElement;
+const debtDisplay = document.getElementById('debt-display') as HTMLElement;
 const lifeLost = document.getElementById('life-lost') as HTMLElement;
 
 // DOM elements - Score Screen
@@ -311,6 +312,7 @@ function resetGame(): void {
     instruction.textContent = 'tap anywhere';
     instruction.classList.remove('hidden');
     countdown.classList.add('hidden');
+    debtDisplay.classList.remove('show-debt');
     lifeLost.classList.add('hidden');
     
     updateHeartsDisplay();
@@ -491,6 +493,14 @@ function handleGameplayTap(e: Event): void {
     }
 }
 
+// Flash the debt amount just deducted
+function showDebt(amount: number): void {
+    debtDisplay.textContent = `-${amount.toFixed(3)}`;
+    debtDisplay.classList.remove('show-debt');
+    void debtDisplay.offsetWidth; // force reflow to restart animation
+    debtDisplay.classList.add('show-debt');
+}
+
 // Handle tap in Sudden Death mode
 function handleSuddenDeathTap(): void {
     if (!isRunning) return;
@@ -498,12 +508,14 @@ function handleSuddenDeathTap(): void {
     // Freeze timer immediately so the tap feels like it lands
     isRunning = false;
     taps++;
-    classifyPoint(timeRemaining);
+    const debt = timeRemaining;
+    classifyPoint(debt);
     updateDisplay();
+    showDebt(debt);
 
     // 80ms beat pause, then apply debt and resume
     setTimeout(() => {
-        maxTime = maxTime - timeRemaining;
+        maxTime = maxTime - debt;
         timeRemaining = maxTime;
         updateDisplay();
         isRunning = true;

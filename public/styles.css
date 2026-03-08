@@ -127,6 +127,26 @@ body {
     z-index: 1;
 }
 
+/* Debt amount flash after each Sudden Death tap */
+#debt-display {
+    font-size: 4vmin;
+    color: #ff6b6b;
+    pointer-events: none;
+    opacity: 0;
+    height: 4vmin;
+    text-align: center;
+}
+
+#debt-display.show-debt {
+    animation: debtFade 400ms ease-out forwards;
+}
+
+@keyframes debtFade {
+    0%   { opacity: 0; }
+    15%  { opacity: 1; }
+    100% { opacity: 0; }
+}
+
 /* Countdown overlay */
 .countdown {
     position: absolute;
@@ -444,6 +464,11 @@ body {
 
     .life-lost {
         font-size: 8vw;
+    }
+
+    #debt-display {
+        font-size: 5vw;
+        height: 5vw;
     }
 
     .arcade-button {
