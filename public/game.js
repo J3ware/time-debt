@@ -30,6 +30,7 @@ const POINTS = {
 // Settings
 let gameMode = 'sudden-death';
 let ringEnabled = true;
+let bounceEnabled = false;
 // Player data
 let currentInitials = ['A', 'A', 'A'];
 let deviceType = 'desktop';
@@ -50,6 +51,7 @@ const helpButton = document.getElementById('help-button');
 const leaderboardButton = document.getElementById('leaderboard-button');
 const modeToggle = document.getElementById('mode-toggle');
 const ringToggle = document.getElementById('ring-toggle');
+const bounceToggle = document.getElementById('bounce-toggle');
 // DOM elements - Start Screen
 const startTimerRing = document.getElementById('start-timer-ring');
 const startHearts = document.getElementById('start-hearts');
@@ -152,11 +154,16 @@ function loadSettings() {
     if (storedRing !== null) {
         ringEnabled = storedRing === 'true';
     }
+    const storedBounce = localStorage.getItem('timedebt_bounce');
+    if (storedBounce !== null) {
+        bounceEnabled = storedBounce === 'true';
+    }
 }
 // Save settings to localStorage
 function saveSettings() {
     localStorage.setItem('timedebt_mode', gameMode);
     localStorage.setItem('timedebt_ring', ringEnabled.toString());
+    localStorage.setItem('timedebt_bounce', bounceEnabled.toString());
 }
 // Show a specific screen (no fade)
 function showScreen(screen) {
@@ -234,6 +241,7 @@ function updateHeartsDisplay() {
 function updateToggleDisplays() {
     modeToggle.textContent = gameMode === 'sudden-death' ? 'SUDDEN DEATH' : 'ONE TAP';
     ringToggle.textContent = ringEnabled ? 'ON' : 'OFF';
+    bounceToggle.textContent = bounceEnabled ? 'ON' : 'OFF';
 }
 // Classify a point based on remaining time and add points
 function classifyPoint(remaining) {
@@ -677,6 +685,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     ringToggle.addEventListener('click', () => {
         ringEnabled = !ringEnabled;
+        updateToggleDisplays();
+        saveSettings();
+    });
+    bounceToggle.addEventListener('click', () => {
+        bounceEnabled = !bounceEnabled;
         updateToggleDisplays();
         saveSettings();
     });

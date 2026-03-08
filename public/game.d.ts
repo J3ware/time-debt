@@ -24,6 +24,7 @@ declare const POINTS: {
 };
 declare let gameMode: 'sudden-death' | 'one-tap';
 declare let ringEnabled: boolean;
+declare let bounceEnabled: boolean;
 declare let currentInitials: string[];
 declare let deviceType: 'desktop' | 'mobile';
 declare let userId: string;
@@ -40,6 +41,7 @@ declare const helpButton: HTMLElement;
 declare const leaderboardButton: HTMLElement;
 declare const modeToggle: HTMLElement;
 declare const ringToggle: HTMLElement;
+declare const bounceToggle: HTMLElement;
 declare const startTimerRing: HTMLElement;
 declare const startHearts: HTMLElement;
 declare const startInstruction: HTMLElement;
