@@ -6,10 +6,8 @@ let score: number = 0;
 let isRunning: boolean = false;
 let lastFrameTime: number = 0;
 
-// One Tap mode state
+// Game flow state
 let lives: number = 3;
-let isLocked: boolean = false;
-let isCountingDown: boolean = false;
 let isReadySetGo: boolean = false;
 let isShrinking: boolean = false;
 
@@ -32,7 +30,6 @@ const POINTS = {
 };
 
 // Settings
-let gameMode: 'sudden-death' | 'one-tap' = 'sudden-death';
 let ringEnabled: boolean = true;
 let bounceEnabled: boolean = false;
 
@@ -57,7 +54,6 @@ const gotItButton = document.getElementById('got-it-button') as HTMLElement;
 const startGameButton = document.getElementById('start-game-button') as HTMLElement;
 const helpButton = document.getElementById('help-button') as HTMLElement;
 const leaderboardButton = document.getElementById('leaderboard-button') as HTMLElement;
-const modeToggle = document.getElementById('mode-toggle') as HTMLElement;
 const ringToggle = document.getElementById('ring-toggle') as HTMLElement;
 const bounceToggle = document.getElementById('bounce-toggle') as HTMLElement;
 
@@ -168,11 +164,6 @@ function markInstructionsSeen(): void {
 
 // Load settings from localStorage
 function loadSettings(): void {
-    const storedMode = localStorage.getItem('timedebt_mode');
-    if (storedMode === 'sudden-death' || storedMode === 'one-tap') {
-        gameMode = storedMode;
-    }
-    
     const storedRing = localStorage.getItem('timedebt_ring');
     if (storedRing !== null) {
         ringEnabled = storedRing === 'true';
@@ -186,7 +177,6 @@ function loadSettings(): void {
 
 // Save settings to localStorage
 function saveSettings(): void {
-    localStorage.setItem('timedebt_mode', gameMode);
     localStorage.setItem('timedebt_ring', ringEnabled.toString());
     localStorage.setItem('timedebt_bounce', bounceEnabled.toString());
 }
@@ -267,7 +257,6 @@ function updateHeartsDisplay(): void {
 
 // Update toggle displays
 function updateToggleDisplays(): void {
-    modeToggle.textContent = gameMode === 'sudden-death' ? 'SUDDEN DEATH' : 'ONE TAP';
     ringToggle.textContent = ringEnabled ? 'ON' : 'OFF';
     bounceToggle.textContent = bounceEnabled ? 'ON' : 'OFF';
 }
@@ -310,8 +299,6 @@ function resetGame(): void {
     isRunning = false;
     lastFrameTime = 0;
     lives = 3;
-    isLocked = false;
-    isCountingDown = false;
     isReadySetGo = false;
     isShrinking = false;
 
@@ -404,40 +391,7 @@ async function handleSuddenDeathLifeLost(): Promise<void> {
 
 // Handle when timer reaches zero
 function handleTimerZero(): void {
-    if (gameMode === 'sudden-death') {
-        handleSuddenDeathLifeLost();
-    } else {
-        // One Tap mode - lose a life
-        lives--;
-        updateHeartsDisplay();
-
-        if (lives <= 0) {
-            endGame();
-        } else {
-            // Show life lost message
-            lifeLost.classList.remove('hidden');
-            instruction.classList.add('hidden');
-
-            // After 2 seconds, start lockout period
-            setTimeout(() => {
-                lifeLost.classList.add('hidden');
-                startLockoutPeriod();
-            }, 2000);
-        }
-    }
-}
-
-// Start the 2-second lockout period (One Tap mode)
-function startLockoutPeriod(): void {
-    isLocked = true;
-    instruction.classList.add('hidden');
-    
-    // After 2 seconds, show "tap anywhere to continue"
-    setTimeout(() => {
-        isLocked = false;
-        instruction.textContent = 'tap anywhere to continue';
-        instruction.classList.remove('hidden');
-    }, 2000);
+    handleSuddenDeathLifeLost();
 }
 
 // Start ready-set-go sequence for initial game start
@@ -467,34 +421,6 @@ function startReadySetGo(): void {
     }, 800);
 }
 
-// Start countdown sequence (3, 2, 1)
-function startCountdown(): void {
-    isCountingDown = true;
-    instruction.classList.add('hidden');
-    countdown.classList.remove('hidden');
-    
-    let count = 3;
-    countdown.textContent = count.toString();
-    
-    const countdownInterval = setInterval(() => {
-        count--;
-        if (count > 0) {
-            countdown.textContent = count.toString();
-        } else {
-            clearInterval(countdownInterval);
-            countdown.classList.add('hidden');
-            isCountingDown = false;
-            
-            // Resume the game
-            instruction.textContent = 'tap anywhere';
-            instruction.classList.remove('hidden');
-            isRunning = true;
-            lastFrameTime = 0;
-            requestAnimationFrame(gameLoop);
-        }
-    }, 1000);
-}
-
 // Go to start screen (pre-game)
 function goToStartScreen(): void {
     resetGame();
@@ -521,15 +447,8 @@ function handleStartScreenTap(e: Event): void {
 // Handle tap during gameplay
 function handleGameplayTap(e: Event): void {
     e.preventDefault();
-    
-    // Ignore taps during lockout, countdown, or ready-set-go
-    if (isLocked || isCountingDown || isReadySetGo) return;
-    
-    if (gameMode === 'sudden-death') {
-        handleSuddenDeathTap();
-    } else {
-        handleOneTapTap();
-    }
+    if (isReadySetGo) return;
+    handleSuddenDeathTap();
 }
 
 // Return tier label and points for a given remaining time
@@ -622,9 +541,8 @@ function animateFillUp(target: number): Promise<void> {
     });
 }
 
-// Show/update the max time display (Sudden Death only)
+// Show/update the max time display
 function updateMaxDisplay(): void {
-    if (gameMode !== 'sudden-death') return;
     maxDisplay.textContent = `MAX: ${maxTime.toFixed(3)}`;
     maxDisplay.classList.remove('hidden');
 }
@@ -661,28 +579,6 @@ function handleSuddenDeathTap(): void {
         lastFrameTime = 0;
         requestAnimationFrame(gameLoop);
     }, 400);
-}
-
-// Handle tap in One Tap mode
-function handleOneTapTap(): void {
-    if (isRunning) {
-        // First tap - stop the clock
-        isRunning = false;
-        taps++;
-        classifyPoint(timeRemaining);
-        
-        // Accumulate debt (but don't update display yet - show the tap result)
-        maxTime = maxTime - timeRemaining;
-        
-        // Start lockout period (display still shows the time they tapped at)
-        startLockoutPeriod();
-    } else if (!isLocked && !isCountingDown) {
-        // Second tap (after lockout) - start countdown
-        // Now update to new maxTime before countdown
-        timeRemaining = maxTime;
-        updateDisplay();
-        startCountdown();
-    }
 }
 
 // End the game - show game over screen, then transition to score screen
@@ -846,12 +742,6 @@ document.addEventListener('DOMContentLoaded', () => {
     leaderboardButton.addEventListener('click', showLeaderboard);
     
     // Toggle handlers
-    modeToggle.addEventListener('click', () => {
-        gameMode = gameMode === 'sudden-death' ? 'one-tap' : 'sudden-death';
-        updateToggleDisplays();
-        saveSettings();
-    });
-    
     ringToggle.addEventListener('click', () => {
         ringEnabled = !ringEnabled;
         updateToggleDisplays();
