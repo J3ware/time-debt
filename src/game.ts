@@ -10,6 +10,7 @@ let lastFrameTime: number = 0;
 let lives: number = 3;
 let isLocked: boolean = false;
 let isCountingDown: boolean = false;
+let isReadySetGo: boolean = false;
 
 // Score tiers
 let perfects: number = 0;
@@ -304,6 +305,7 @@ function resetGame(): void {
     lives = 3;
     isLocked = false;
     isCountingDown = false;
+    isReadySetGo = false;
     
     // Reset UI elements
     instruction.textContent = 'tap anywhere';
@@ -398,6 +400,32 @@ function startLockoutPeriod(): void {
     }, 2000);
 }
 
+// Start ready-set-go sequence for initial game start
+function startReadySetGo(): void {
+    isReadySetGo = true;
+    instruction.classList.add('hidden');
+    countdown.classList.remove('hidden');
+    countdown.textContent = 'READY';
+
+    setTimeout(() => {
+        countdown.textContent = 'SET';
+
+        setTimeout(() => {
+            countdown.textContent = 'GO!';
+
+            setTimeout(() => {
+                countdown.classList.add('hidden');
+                isReadySetGo = false;
+                instruction.textContent = 'tap anywhere';
+                instruction.classList.remove('hidden');
+                isRunning = true;
+                lastFrameTime = 0;
+                requestAnimationFrame(gameLoop);
+            }, 400);
+        }, 800);
+    }, 800);
+}
+
 // Start countdown sequence (3, 2, 1)
 function startCountdown(): void {
     isCountingDown = true;
@@ -439,9 +467,8 @@ function startGame(): void {
     showScreen(gameplayScreen);
     updateRingVisibility();
     updateHeartsVisibility();
-    isRunning = true;
     updateDisplay();
-    requestAnimationFrame(gameLoop);
+    startReadySetGo();
 }
 
 // Handle tap on start screen
@@ -454,8 +481,8 @@ function handleStartScreenTap(e: Event): void {
 function handleGameplayTap(e: Event): void {
     e.preventDefault();
     
-    // Ignore taps during lockout or countdown
-    if (isLocked || isCountingDown) return;
+    // Ignore taps during lockout, countdown, or ready-set-go
+    if (isLocked || isCountingDown || isReadySetGo) return;
     
     if (gameMode === 'sudden-death') {
         handleSuddenDeathTap();
