@@ -535,16 +535,15 @@ function showDebt(amount: number, tierLabel: string, points: number): void {
     popup.addEventListener('animationend', () => popup.remove());
 }
 
-// Animate the timer counting up from its current value to target (Bounce mode)
-// Duration is proportional: filling 1.000 takes 1000ms
+// Animate the timer between its current value and target (Bounce mode).
+// Fills up if target > current (good tap), shrinks down if target < current (early tap).
+// Duration is proportional: 1.000 of change takes 1000ms, minimum 100ms.
 function animateFillUp(target: number): Promise<void> {
     return new Promise((resolve) => {
         const startValue = timeRemaining;
-        const duration = (target - startValue) * 1000;
+        const duration = Math.max(Math.abs(target - startValue) * 1000, 100);
 
-        if (duration <= 0) {
-            timeRemaining = target;
-            updateDisplay();
+        if (target === startValue) {
             resolve();
             return;
         }
