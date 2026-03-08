@@ -26,9 +26,6 @@ const POINTS = {
     poor: 5,
     bad: 0
 };
-// Settings
-let ringEnabled = true;
-let bounceEnabled = false;
 // Player data
 let currentInitials = ['A', 'A', 'A'];
 let deviceType = 'desktop';
@@ -47,8 +44,6 @@ const gotItButton = document.getElementById('got-it-button');
 const startGameButton = document.getElementById('start-game-button');
 const helpButton = document.getElementById('help-button');
 const leaderboardButton = document.getElementById('leaderboard-button');
-const ringToggle = document.getElementById('ring-toggle');
-const bounceToggle = document.getElementById('bounce-toggle');
 // DOM elements - Start Screen
 const startTimerRing = document.getElementById('start-timer-ring');
 const startHearts = document.getElementById('start-hearts');
@@ -141,22 +136,6 @@ function hasSeenInstructions() {
 function markInstructionsSeen() {
     localStorage.setItem('timedebt_instructions_seen', 'true');
 }
-// Load settings from localStorage
-function loadSettings() {
-    const storedRing = localStorage.getItem('timedebt_ring');
-    if (storedRing !== null) {
-        ringEnabled = storedRing === 'true';
-    }
-    const storedBounce = localStorage.getItem('timedebt_bounce');
-    if (storedBounce !== null) {
-        bounceEnabled = storedBounce === 'true';
-    }
-}
-// Save settings to localStorage
-function saveSettings() {
-    localStorage.setItem('timedebt_ring', ringEnabled.toString());
-    localStorage.setItem('timedebt_bounce', bounceEnabled.toString());
-}
 // Show a specific screen (no fade)
 function showScreen(screen) {
     instructionsPopup.classList.add('hidden');
@@ -186,17 +165,6 @@ function showScreenWithFade(screen) {
 function showInstructions() {
     instructionsPopup.classList.remove('hidden');
 }
-// Update ring visibility based on setting
-function updateRingVisibility() {
-    if (ringEnabled) {
-        timerRing.classList.remove('hidden');
-        startTimerRing.classList.remove('hidden');
-    }
-    else {
-        timerRing.classList.add('hidden');
-        startTimerRing.classList.add('hidden');
-    }
-}
 // Show hearts during gameplay (always visible)
 function updateHeartsVisibility() {
     startHearts.classList.remove('hidden');
@@ -222,11 +190,6 @@ function updateHeartsDisplay() {
             heart.classList.add('lost');
         }
     });
-}
-// Update toggle displays
-function updateToggleDisplays() {
-    ringToggle.textContent = ringEnabled ? 'ON' : 'OFF';
-    bounceToggle.textContent = bounceEnabled ? 'ON' : 'OFF';
 }
 // Classify a point based on remaining time and add points
 function classifyPoint(remaining) {
@@ -285,8 +248,6 @@ function resetGame() {
 }
 // Update the timer ring visualization
 function updateRing() {
-    if (!ringEnabled)
-        return;
     const percent = timeRemaining * 100;
     const color = isShrinking ? '#ff6b6b' : '#e0e0e0';
     timerRing.style.background = `conic-gradient(
@@ -374,14 +335,12 @@ function startReadySetGo() {
 // Go to start screen (pre-game)
 function goToStartScreen() {
     resetGame();
-    updateRingVisibility();
     updateHeartsVisibility();
     showScreen(startScreen);
 }
 // Start the game (from start screen tap)
 function startGame() {
     showScreen(gameplayScreen);
-    updateRingVisibility();
     updateHeartsVisibility();
     updateDisplay();
     startReadySetGo();
@@ -503,15 +462,8 @@ function handleSuddenDeathTap() {
     setTimeout(async () => {
         maxTime = maxTime - debt;
         updateMaxDisplay();
-        if (bounceEnabled) {
-            // Animate the timer filling up to the new maxTime, then pause before resuming
-            await animateFillUp(maxTime);
-            await new Promise(resolve => setTimeout(resolve, 400));
-        }
-        else {
-            timeRemaining = maxTime;
-            updateDisplay();
-        }
+        await animateFillUp(maxTime);
+        await new Promise(resolve => setTimeout(resolve, 400));
         isRunning = true;
         lastFrameTime = 0;
         requestAnimationFrame(gameLoop);
@@ -646,7 +598,6 @@ function showLeaderboard() {
 }
 // Go to main menu
 function goToMainMenu() {
-    updateToggleDisplays();
     showScreen(mainMenuScreen);
 }
 // Initialize when DOM is ready
@@ -662,17 +613,6 @@ document.addEventListener('DOMContentLoaded', () => {
         showInstructions();
     });
     leaderboardButton.addEventListener('click', showLeaderboard);
-    // Toggle handlers
-    ringToggle.addEventListener('click', () => {
-        ringEnabled = !ringEnabled;
-        updateToggleDisplays();
-        saveSettings();
-    });
-    bounceToggle.addEventListener('click', () => {
-        bounceEnabled = !bounceEnabled;
-        updateToggleDisplays();
-        saveSettings();
-    });
     // Start Screen
     startScreen.addEventListener('click', handleStartScreenTap);
     startScreen.addEventListener('touchstart', handleStartScreenTap);
@@ -701,8 +641,6 @@ document.addEventListener('DOMContentLoaded', () => {
     detectDevice();
     initUserId();
     loadInitials();
-    loadSettings();
-    updateToggleDisplays();
     // Show instructions or main menu
     if (hasSeenInstructions()) {
         goToMainMenu();

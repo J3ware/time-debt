@@ -29,9 +29,6 @@ const POINTS = {
     bad: 0
 };
 
-// Settings
-let ringEnabled: boolean = true;
-let bounceEnabled: boolean = false;
 
 // Player data
 let currentInitials: string[] = ['A', 'A', 'A'];
@@ -54,8 +51,6 @@ const gotItButton = document.getElementById('got-it-button') as HTMLElement;
 const startGameButton = document.getElementById('start-game-button') as HTMLElement;
 const helpButton = document.getElementById('help-button') as HTMLElement;
 const leaderboardButton = document.getElementById('leaderboard-button') as HTMLElement;
-const ringToggle = document.getElementById('ring-toggle') as HTMLElement;
-const bounceToggle = document.getElementById('bounce-toggle') as HTMLElement;
 
 // DOM elements - Start Screen
 const startTimerRing = document.getElementById('start-timer-ring') as HTMLElement;
@@ -162,24 +157,6 @@ function markInstructionsSeen(): void {
     localStorage.setItem('timedebt_instructions_seen', 'true');
 }
 
-// Load settings from localStorage
-function loadSettings(): void {
-    const storedRing = localStorage.getItem('timedebt_ring');
-    if (storedRing !== null) {
-        ringEnabled = storedRing === 'true';
-    }
-
-    const storedBounce = localStorage.getItem('timedebt_bounce');
-    if (storedBounce !== null) {
-        bounceEnabled = storedBounce === 'true';
-    }
-}
-
-// Save settings to localStorage
-function saveSettings(): void {
-    localStorage.setItem('timedebt_ring', ringEnabled.toString());
-    localStorage.setItem('timedebt_bounce', bounceEnabled.toString());
-}
 
 // Show a specific screen (no fade)
 function showScreen(screen: HTMLElement): void {
@@ -216,17 +193,6 @@ function showInstructions(): void {
     instructionsPopup.classList.remove('hidden');
 }
 
-// Update ring visibility based on setting
-function updateRingVisibility(): void {
-    if (ringEnabled) {
-        timerRing.classList.remove('hidden');
-        startTimerRing.classList.remove('hidden');
-    } else {
-        timerRing.classList.add('hidden');
-        startTimerRing.classList.add('hidden');
-    }
-}
-
 // Show hearts during gameplay (always visible)
 function updateHeartsVisibility(): void {
     startHearts.classList.remove('hidden');
@@ -253,12 +219,6 @@ function updateHeartsDisplay(): void {
             heart.classList.add('lost');
         }
     });
-}
-
-// Update toggle displays
-function updateToggleDisplays(): void {
-    ringToggle.textContent = ringEnabled ? 'ON' : 'OFF';
-    bounceToggle.textContent = bounceEnabled ? 'ON' : 'OFF';
 }
 
 // Classify a point based on remaining time and add points
@@ -317,8 +277,6 @@ function resetGame(): void {
 
 // Update the timer ring visualization
 function updateRing(): void {
-    if (!ringEnabled) return;
-
     const percent = timeRemaining * 100;
     const color = isShrinking ? '#ff6b6b' : '#e0e0e0';
 
@@ -424,7 +382,6 @@ function startReadySetGo(): void {
 // Go to start screen (pre-game)
 function goToStartScreen(): void {
     resetGame();
-    updateRingVisibility();
     updateHeartsVisibility();
     showScreen(startScreen);
 }
@@ -432,7 +389,6 @@ function goToStartScreen(): void {
 // Start the game (from start screen tap)
 function startGame(): void {
     showScreen(gameplayScreen);
-    updateRingVisibility();
     updateHeartsVisibility();
     updateDisplay();
     startReadySetGo();
@@ -566,14 +522,8 @@ function handleSuddenDeathTap(): void {
         maxTime = maxTime - debt;
         updateMaxDisplay();
 
-        if (bounceEnabled) {
-            // Animate the timer filling up to the new maxTime, then pause before resuming
-            await animateFillUp(maxTime);
-            await new Promise<void>(resolve => setTimeout(resolve, 400));
-        } else {
-            timeRemaining = maxTime;
-            updateDisplay();
-        }
+        await animateFillUp(maxTime);
+        await new Promise<void>(resolve => setTimeout(resolve, 400));
 
         isRunning = true;
         lastFrameTime = 0;
@@ -720,7 +670,6 @@ function showLeaderboard(): void {
 
 // Go to main menu
 function goToMainMenu(): void {
-    updateToggleDisplays();
     showScreen(mainMenuScreen);
 }
 
@@ -741,19 +690,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     leaderboardButton.addEventListener('click', showLeaderboard);
     
-    // Toggle handlers
-    ringToggle.addEventListener('click', () => {
-        ringEnabled = !ringEnabled;
-        updateToggleDisplays();
-        saveSettings();
-    });
-
-    bounceToggle.addEventListener('click', () => {
-        bounceEnabled = !bounceEnabled;
-        updateToggleDisplays();
-        saveSettings();
-    });
-
     // Start Screen
     startScreen.addEventListener('click', handleStartScreenTap);
     startScreen.addEventListener('touchstart', handleStartScreenTap);
@@ -786,8 +722,6 @@ document.addEventListener('DOMContentLoaded', () => {
     detectDevice();
     initUserId();
     loadInitials();
-    loadSettings();
-    updateToggleDisplays();
 
     // Show instructions or main menu
     if (hasSeenInstructions()) {
