@@ -11,6 +11,7 @@ let lives = 3;
 let isLocked = false;
 let isCountingDown = false;
 let isReadySetGo = false;
+let isShrinking = false;
 // Score tiers
 let perfects = 0;
 let greats = 0;
@@ -288,13 +289,16 @@ function resetGame() {
     isLocked = false;
     isCountingDown = false;
     isReadySetGo = false;
+    isShrinking = false;
     // Reset UI elements
     instruction.textContent = 'tap anywhere';
     instruction.classList.remove('hidden');
     countdown.classList.add('hidden');
     gameplayScreen.querySelectorAll('.debt-popup').forEach(el => el.remove());
+    gameplayScreen.querySelectorAll('.too-early-msg').forEach(el => el.remove());
     maxDisplay.classList.add('hidden');
     lifeLost.classList.add('hidden');
+    timerDisplay.classList.remove('timer-shrinking');
     updateHeartsDisplay();
 }
 // Update the timer ring visualization
@@ -302,10 +306,11 @@ function updateRing() {
     if (!ringEnabled)
         return;
     const percent = timeRemaining * 100;
+    const color = isShrinking ? '#ff6b6b' : '#e0e0e0';
     timerRing.style.background = `conic-gradient(
         from 0deg,
-        #e0e0e0 0%,
-        #e0e0e0 ${percent}%,
+        ${color} 0%,
+        ${color} ${percent}%,
         transparent ${percent}%
     )`;
 }
@@ -465,6 +470,18 @@ function getTierInfo(remaining) {
         return { label: 'POOR', points: POINTS.poor };
     return { label: 'BAD', points: POINTS.bad };
 }
+// Show "TOO EARLY!" above the timer for early taps
+function showTooEarly() {
+    const el = document.createElement('div');
+    el.className = 'too-early-msg';
+    el.textContent = 'TOO EARLY!';
+    const containerRect = timerContainer.getBoundingClientRect();
+    const screenRect = gameplayScreen.getBoundingClientRect();
+    el.style.top = `${containerRect.top - screenRect.top}px`;
+    el.style.left = `${containerRect.left + containerRect.width / 2 - screenRect.left}px`;
+    gameplayScreen.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+}
 // Spawn a floating debt popup for this tap (stacks with concurrent popups)
 function showDebt(amount, tierLabel, points) {
     const popup = document.createElement('div');
@@ -489,9 +506,14 @@ function animateFillUp(target) {
     return new Promise((resolve) => {
         const startValue = timeRemaining;
         const duration = Math.max(Math.abs(target - startValue) * 1000, 100);
+        const shrinking = target < startValue;
         if (target === startValue) {
             resolve();
             return;
+        }
+        if (shrinking) {
+            isShrinking = true;
+            timerDisplay.classList.add('timer-shrinking');
         }
         let startTime = null;
         function frame(currentTime) {
@@ -505,6 +527,10 @@ function animateFillUp(target) {
             }
             else {
                 timeRemaining = target;
+                if (shrinking) {
+                    isShrinking = false;
+                    timerDisplay.classList.remove('timer-shrinking');
+                }
                 updateDisplay();
                 resolve();
             }
@@ -531,6 +557,8 @@ function handleSuddenDeathTap() {
     classifyPoint(debt);
     updateDisplay();
     showDebt(debt, tier.label, tier.points);
+    if (debt > maxTime * 0.5)
+        showTooEarly();
     // 400ms freeze, then apply debt and resume
     setTimeout(async () => {
         maxTime = maxTime - debt;

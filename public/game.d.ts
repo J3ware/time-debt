@@ -8,6 +8,7 @@ declare let lives: number;
 declare let isLocked: boolean;
 declare let isCountingDown: boolean;
 declare let isReadySetGo: boolean;
+declare let isShrinking: boolean;
 declare let perfects: number;
 declare let greats: number;
 declare let goods: number;
@@ -102,6 +103,7 @@ declare function getTierInfo(remaining: number): {
     label: string;
     points: number;
 };
+declare function showTooEarly(): void;
 declare function showDebt(amount: number, tierLabel: string, points: number): void;
 declare function animateFillUp(target: number): Promise<void>;
 declare function updateMaxDisplay(): void;

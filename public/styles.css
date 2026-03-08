@@ -125,6 +125,28 @@ body {
     font-size: 15vmin;
     letter-spacing: 0.02em;
     z-index: 1;
+    transition: color 0.1s ease;
+}
+
+.timer.timer-shrinking {
+    color: #ff6b6b;
+}
+
+/* "TOO EARLY!" message for early taps */
+.too-early-msg {
+    position: absolute;
+    font-size: 5vmin;
+    color: #ff6b6b;
+    letter-spacing: 0.1em;
+    pointer-events: none;
+    transform: translate(-50%, -120%);
+    animation: tooEarlyFade 800ms ease-out forwards;
+    z-index: 5;
+}
+
+@keyframes tooEarlyFade {
+    0%   { opacity: 1; }
+    100% { opacity: 0; }
 }
 
 /* Floating debt popups — created dynamically per tap */
