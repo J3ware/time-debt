@@ -206,16 +206,10 @@ function updateRingVisibility() {
         startTimerRing.classList.add('hidden');
     }
 }
-// Update hearts visibility based on game mode
+// Show hearts during gameplay (always visible)
 function updateHeartsVisibility() {
-    if (gameMode === 'one-tap') {
-        startHearts.classList.remove('hidden');
-        gameplayHearts.classList.remove('hidden');
-    }
-    else {
-        startHearts.classList.add('hidden');
-        gameplayHearts.classList.add('hidden');
-    }
+    startHearts.classList.remove('hidden');
+    gameplayHearts.classList.remove('hidden');
 }
 // Update hearts display based on lives remaining
 function updateHeartsDisplay() {
@@ -340,10 +334,32 @@ function gameLoop(currentTime) {
     updateDisplay();
     requestAnimationFrame(gameLoop);
 }
+// Handle a life lost in Sudden Death mode
+async function handleSuddenDeathLifeLost() {
+    lives--;
+    updateHeartsDisplay();
+    if (lives <= 0) {
+        endGame();
+        return;
+    }
+    // Show LIFE LOST for 1.5 seconds
+    lifeLost.classList.remove('hidden');
+    instruction.classList.add('hidden');
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    lifeLost.classList.add('hidden');
+    // Fill timer back up to maxTime, then pause before resuming
+    await animateFillUp(maxTime);
+    await new Promise(resolve => setTimeout(resolve, 400));
+    instruction.textContent = 'tap anywhere';
+    instruction.classList.remove('hidden');
+    isRunning = true;
+    lastFrameTime = 0;
+    requestAnimationFrame(gameLoop);
+}
 // Handle when timer reaches zero
 function handleTimerZero() {
     if (gameMode === 'sudden-death') {
-        endGame();
+        handleSuddenDeathLifeLost();
     }
     else {
         // One Tap mode - lose a life

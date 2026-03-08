@@ -91,6 +91,7 @@ declare function resetGame(): void;
 declare function updateRing(): void;
 declare function updateDisplay(): void;
 declare function gameLoop(currentTime: number): void;
+declare function handleSuddenDeathLifeLost(): Promise<void>;
 declare function handleTimerZero(): void;
 declare function startLockoutPeriod(): void;
 declare function startReadySetGo(): void;
