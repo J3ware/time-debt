@@ -95,7 +95,11 @@ declare function goToStartScreen(): void;
 declare function startGame(): void;
 declare function handleStartScreenTap(e: Event): void;
 declare function handleGameplayTap(e: Event): void;
-declare function showDebt(amount: number): void;
+declare function getTierInfo(remaining: number): {
+    label: string;
+    points: number;
+};
+declare function showDebt(amount: number, tierLabel: string, points: number): void;
 declare function handleSuddenDeathTap(): void;
 declare function handleOneTapTap(): void;
 declare function endGame(): void;

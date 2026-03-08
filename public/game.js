@@ -440,9 +440,27 @@ function handleGameplayTap(e) {
         handleOneTapTap();
     }
 }
-// Flash the debt amount just deducted
-function showDebt(amount) {
-    debtDisplay.textContent = `-${amount.toFixed(3)}`;
+// Return tier label and points for a given remaining time
+function getTierInfo(remaining) {
+    if (remaining <= 0.005)
+        return { label: 'PERFECT', points: POINTS.perfect };
+    if (remaining <= 0.050)
+        return { label: 'GREAT', points: POINTS.great };
+    if (remaining <= 0.100)
+        return { label: 'GOOD', points: POINTS.good };
+    if (remaining <= 0.200)
+        return { label: 'FINE', points: POINTS.fine };
+    if (remaining <= 0.350)
+        return { label: 'POOR', points: POINTS.poor };
+    return { label: 'BAD', points: POINTS.bad };
+}
+// Flash tier, points, and debt amount after a tap
+function showDebt(amount, tierLabel, points) {
+    debtDisplay.innerHTML = `
+        <div class="debt-tier">${tierLabel}</div>
+        <div class="debt-points">+${points}</div>
+        <div class="debt-amount">-${amount.toFixed(3)}</div>
+    `;
     debtDisplay.classList.remove('show-debt');
     void debtDisplay.offsetWidth; // force reflow to restart animation
     debtDisplay.classList.add('show-debt');
@@ -455,9 +473,10 @@ function handleSuddenDeathTap() {
     isRunning = false;
     taps++;
     const debt = timeRemaining;
+    const tier = getTierInfo(debt);
     classifyPoint(debt);
     updateDisplay();
-    showDebt(debt);
+    showDebt(debt, tier.label, tier.points);
     // 80ms beat pause, then apply debt and resume
     setTimeout(() => {
         maxTime = maxTime - debt;
