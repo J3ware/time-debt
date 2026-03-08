@@ -263,6 +263,15 @@ function updateDisplay() {
     timerDisplay.textContent = timeRemaining.toFixed(3);
     scoreDisplay.textContent = score.toString();
     updateRing();
+    if (timeRemaining < 0.100) {
+        timerDisplay.style.color = '#ef4444';
+    }
+    else if (timeRemaining < 0.300) {
+        timerDisplay.style.color = '#fbbf24';
+    }
+    else {
+        timerDisplay.style.color = '';
+    }
 }
 // Main game loop
 function gameLoop(currentTime) {
