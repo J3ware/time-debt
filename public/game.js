@@ -6,6 +6,8 @@ let taps = 0;
 let score = 0;
 let isRunning = false;
 let lastFrameTime = 0;
+// Visual state
+let ringColor = '#8888aa';
 // Game flow state
 let lives = 3;
 let isReadySetGo = false;
@@ -334,6 +336,8 @@ function resetGame() {
     lifeLost.classList.add('hidden');
     timerDisplay.classList.remove('timer-shrinking');
     timerRing.style.setProperty('--ring-thickness', '4px');
+    ringColor = '#8888aa';
+    timerRing.style.setProperty('--ring-track-color', ringColor);
     gameplayScreen.style.backgroundColor = '#0a0a12';
     multiplierDisplay.classList.add('hidden');
     multiplierDisplay.classList.remove('mult-5x');
@@ -357,6 +361,26 @@ function updateGameplayBackground() {
     }
     gameplayScreen.style.backgroundColor = `rgb(${r},10,${b})`;
 }
+// Shift ring color based on tap count
+// tap 0: #8888aa (cool gray) → tap 10: #aa66cc (muted purple) → tap 20+: #cc4444 (red)
+function updateRingColor() {
+    const t = Math.min(taps, 20);
+    let r, g, b;
+    if (t <= 10) {
+        const s = t / 10;
+        r = Math.round(136 + s * 34); // 136 → 170
+        g = Math.round(136 - s * 34); // 136 → 102
+        b = Math.round(170 + s * 34); // 170 → 204
+    }
+    else {
+        const s = (t - 10) / 10;
+        r = Math.round(170 + s * 34); // 170 → 204
+        g = Math.round(102 - s * 34); // 102 → 68
+        b = Math.round(204 - s * 136); // 204 → 68
+    }
+    ringColor = `rgb(${r},${g},${b})`;
+    timerRing.style.setProperty('--ring-track-color', ringColor);
+}
 // Update ring thickness based on tap count (4px at tap 1, +1.6px per tap, max 36px)
 function updateRingThickness() {
     const thickness = Math.min(4 + (taps - 1) * 1.6, 36);
@@ -365,7 +389,7 @@ function updateRingThickness() {
 // Update the timer ring visualization
 function updateRing() {
     const percent = timeRemaining * 100;
-    const color = isShrinking ? '#ff6b6b' : '#e0e0e0';
+    const color = isShrinking ? '#ff6b6b' : ringColor;
     timerRing.style.background = `conic-gradient(
         from 0deg,
         ${color} 0%,
@@ -477,6 +501,8 @@ function goToStartScreen() {
 function startGame() {
     showScreen(gameplayScreen);
     gameplayScreen.style.backgroundColor = '#0a0a12';
+    ringColor = '#8888aa';
+    timerRing.style.setProperty('--ring-track-color', ringColor);
     updateHeartsVisibility();
     updateDisplay();
     startReadySetGo();
@@ -618,6 +644,7 @@ function handleSuddenDeathTap() {
     isRunning = false;
     taps++;
     updateRingThickness();
+    updateRingColor();
     updateGameplayBackground();
     const debt = timeRemaining;
     const { tierLabel, multiplier, points } = classifyPoint(debt);

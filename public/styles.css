@@ -111,7 +111,7 @@ body {
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    background: #333;
+    background: var(--ring-track-color, #333);
     opacity: 0.3;
     -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--ring-thickness)), #000 calc(100% - var(--ring-thickness)));
     mask: radial-gradient(farthest-side, transparent calc(100% - var(--ring-thickness)), #000 calc(100% - var(--ring-thickness)));
