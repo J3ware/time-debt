@@ -281,6 +281,7 @@ function resetGame() {
     countdown.classList.add('hidden');
     gameplayScreen.querySelectorAll('.debt-popup').forEach(el => el.remove());
     gameplayScreen.querySelectorAll('.too-early-msg').forEach(el => el.remove());
+    document.querySelectorAll('.celebration-msg').forEach(el => el.remove());
     maxDisplay.classList.add('hidden');
     lifeLost.classList.add('hidden');
     timerDisplay.classList.remove('timer-shrinking');
@@ -428,6 +429,14 @@ function triggerFlash(tier) {
         tapFlash.classList.add('flash');
     }
 }
+// Show full-screen celebration for PERFECT or GREAT taps
+function showCelebration(tier) {
+    const el = document.createElement('div');
+    el.className = `celebration-msg celebration-${tier.toLowerCase()}`;
+    el.textContent = `${tier}!`;
+    document.body.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+}
 // Show "TOO EARLY!" above the timer for early taps
 function showTooEarly() {
     const el = document.createElement('div');
@@ -507,6 +516,8 @@ function handleSuddenDeathTap() {
     const debt = timeRemaining;
     const tierLabel = classifyPoint(debt);
     triggerFlash(tierLabel);
+    if (tierLabel === 'PERFECT' || tierLabel === 'GREAT')
+        showCelebration(tierLabel);
     updateDisplay();
     showDebt(debt);
     if (debt > maxTime * 0.5)

@@ -92,6 +92,7 @@ declare function startGame(): void;
 declare function handleStartScreenTap(e: Event): void;
 declare function handleGameplayTap(e: Event): void;
 declare function triggerFlash(tier?: string): void;
+declare function showCelebration(tier: 'PERFECT' | 'GREAT'): void;
 declare function showTooEarly(): void;
 declare function showDebt(amount: number): void;
 declare function animateFillUp(target: number): Promise<void>;

@@ -250,6 +250,43 @@ body {
     animation: tierFlash 400ms ease-out forwards;
 }
 
+/* PERFECT / GREAT celebration messages */
+.celebration-msg {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 50;
+    letter-spacing: 0.05em;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.celebration-perfect {
+    font-size: 20vmin;
+    color: #ffd700;
+    animation: celebrationPerfect 1400ms ease-in forwards;
+}
+
+.celebration-great {
+    font-size: 16vmin;
+    color: #4ade80;
+    animation: celebrationGreat 900ms ease-in forwards;
+}
+
+@keyframes celebrationPerfect {
+    0%   { opacity: 1; }
+    71%  { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@keyframes celebrationGreat {
+    0%   { opacity: 1; }
+    67%  { opacity: 1; }
+    100% { opacity: 0; }
+}
+
 /* Tap confirmation flash */
 #tap-flash {
     position: fixed;
