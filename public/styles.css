@@ -288,6 +288,36 @@ body {
     100% { opacity: 0; }
 }
 
+/* Streak multiplier display */
+#multiplier-display {
+    position: absolute;
+    right: 4vw;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    letter-spacing: 0.02em;
+    z-index: 5;
+}
+
+#multiplier-display.hidden {
+    display: none;
+}
+
+#multiplier-display.mult-5x {
+    animation: multPulse 800ms ease-in-out infinite;
+}
+
+@keyframes multPulse {
+    0%, 100% { transform: translateY(-50%) scale(1.0); }
+    50%       { transform: translateY(-50%) scale(1.1); }
+}
+
+/* Multiplier label inside debt popup */
+.debt-multiplier {
+    opacity: 0.75;
+    font-size: 0.85em;
+}
+
 /* Tap confirmation flash */
 #tap-flash {
     position: fixed;

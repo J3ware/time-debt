@@ -10,6 +10,7 @@ let lastFrameTime: number = 0;
 let lives: number = 3;
 let isReadySetGo: boolean = false;
 let isShrinking: boolean = false;
+let streak: number = 0;
 
 // Score tiers
 let perfects: number = 0;
@@ -69,6 +70,7 @@ const timerContainer = document.getElementById('timer-container') as HTMLElement
 const maxDisplay = document.getElementById('max-display') as HTMLElement;
 const lifeLost = document.getElementById('life-lost') as HTMLElement;
 const tapFlash = document.getElementById('tap-flash') as HTMLElement;
+const multiplierDisplay = document.getElementById('multiplier-display') as HTMLElement;
 
 // DOM elements - Score Screen
 const finalScoreDisplay = document.getElementById('final-score') as HTMLElement;
@@ -223,25 +225,45 @@ function updateHeartsDisplay(): void {
     });
 }
 
-// Classify a point based on remaining time, add points, and return the tier label
-function classifyPoint(remaining: number): string {
+// Return streak multiplier
+function getMultiplier(): number {
+    if (streak >= 8) return 5;
+    if (streak >= 5) return 3;
+    if (streak >= 2) return 2;
+    return 1;
+}
+
+// Classify a point, apply streak multiplier, and return tier info
+function classifyPoint(remaining: number): { tierLabel: string; multiplier: number; points: number } {
     let tierLabel: string;
+    let basePoints: number;
     if (remaining <= 0.005) {
-        perfects++; score += POINTS.perfect; tierLabel = 'PERFECT';
+        perfects++; basePoints = POINTS.perfect; tierLabel = 'PERFECT';
     } else if (remaining <= 0.050) {
-        greats++;   score += POINTS.great;   tierLabel = 'GREAT';
+        greats++;   basePoints = POINTS.great;   tierLabel = 'GREAT';
     } else if (remaining <= 0.100) {
-        goods++;    score += POINTS.good;    tierLabel = 'GOOD';
+        goods++;    basePoints = POINTS.good;    tierLabel = 'GOOD';
     } else if (remaining <= 0.200) {
-        fines++;    score += POINTS.fine;    tierLabel = 'FINE';
+        fines++;    basePoints = POINTS.fine;    tierLabel = 'FINE';
     } else if (remaining <= 0.350) {
-        poors++;    score += POINTS.poor;    tierLabel = 'POOR';
+        poors++;    basePoints = POINTS.poor;    tierLabel = 'POOR';
     } else {
-        bads++;     score += POINTS.bad;     tierLabel = 'BAD';
+        bads++;     basePoints = POINTS.bad;     tierLabel = 'BAD';
     }
+
+    if (tierLabel === 'PERFECT' || tierLabel === 'GREAT') {
+        streak++;
+    } else {
+        streak = 0;
+    }
+
+    const multiplier = getMultiplier();
+    const points = basePoints * multiplier;
+    score += points;
+
     updateTierScoreboard();
     flashTierRow(tierLabel);
-    return tierLabel;
+    return { tierLabel, multiplier, points };
 }
 
 // Update all rows in the tier scoreboard
@@ -289,6 +311,7 @@ function resetGame(): void {
     lives = 3;
     isReadySetGo = false;
     isShrinking = false;
+    streak = 0;
 
     // Reset UI elements
     instruction.textContent = 'tap anywhere';
@@ -301,6 +324,8 @@ function resetGame(): void {
     lifeLost.classList.add('hidden');
     timerDisplay.classList.remove('timer-shrinking');
     timerRing.style.setProperty('--ring-thickness', '4px');
+    multiplierDisplay.classList.add('hidden');
+    multiplierDisplay.classList.remove('mult-5x');
     updateTierScoreboard();
     updateHeartsDisplay();
 }
@@ -493,11 +518,14 @@ function showTooEarly(): void {
     el.addEventListener('animationend', () => el.remove());
 }
 
-// Spawn a floating debt popup showing only the time deducted
-function showDebt(amount: number): void {
+// Spawn a floating debt popup showing points earned and time deducted
+function showDebt(amount: number, points: number, multiplier: number): void {
     const popup = document.createElement('div');
     popup.className = 'debt-popup';
-    popup.innerHTML = `<div class="debt-amount">-${amount.toFixed(3)}</div>`;
+    const pointsLine = points > 0
+        ? `<div class="debt-points">${multiplier > 1 ? `+${points} <span class="debt-multiplier">x${multiplier}</span>` : `+${points}`}</div>`
+        : '';
+    popup.innerHTML = `${pointsLine}<div class="debt-amount">-${amount.toFixed(3)}</div>`;
 
     // Anchor to the bottom-center of the timer container
     const containerRect = timerContainer.getBoundingClientRect();
@@ -554,6 +582,28 @@ function animateFillUp(target: number): Promise<void> {
     });
 }
 
+// Show/update the streak multiplier display
+function updateMultiplierDisplay(multiplier: number): void {
+    if (multiplier <= 1) {
+        multiplierDisplay.classList.add('hidden');
+        multiplierDisplay.classList.remove('mult-5x');
+        return;
+    }
+    multiplierDisplay.textContent = `x${multiplier}`;
+    multiplierDisplay.classList.remove('hidden', 'mult-5x');
+    if (multiplier >= 5) {
+        multiplierDisplay.style.fontSize = '16vmin';
+        multiplierDisplay.style.color = '#ff6b6b';
+        multiplierDisplay.classList.add('mult-5x');
+    } else if (multiplier >= 3) {
+        multiplierDisplay.style.fontSize = '12vmin';
+        multiplierDisplay.style.color = '#ffd700';
+    } else {
+        multiplierDisplay.style.fontSize = '8vmin';
+        multiplierDisplay.style.color = '#4ade80';
+    }
+}
+
 // Show/update the max time display
 function updateMaxDisplay(): void {
     maxDisplay.textContent = `MAX: ${maxTime.toFixed(3)}`;
@@ -569,11 +619,12 @@ function handleSuddenDeathTap(): void {
     taps++;
     updateRingThickness();
     const debt = timeRemaining;
-    const tierLabel = classifyPoint(debt);
+    const { tierLabel, multiplier, points } = classifyPoint(debt);
     triggerFlash(tierLabel);
     if (tierLabel === 'PERFECT' || tierLabel === 'GREAT') showCelebration(tierLabel);
     updateDisplay();
-    showDebt(debt);
+    showDebt(debt, points, multiplier);
+    updateMultiplierDisplay(multiplier);
     if (debt > maxTime * 0.5) showTooEarly();
 
     const freezeMs = tierLabel === 'PERFECT' ? 1400 : tierLabel === 'GREAT' ? 900 : 400;
