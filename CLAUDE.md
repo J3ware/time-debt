@@ -23,10 +23,17 @@ Instructions Popup → Main Menu → Start Screen → Gameplay Screen → Game O
 
 Screens are toggled by adding/removing `hidden` class. `showScreen()` hides all screens then reveals one; `showScreenWithFade()` adds a `fade-in` CSS animation.
 
-### Game modes
+### Gameplay
 
-- **Sudden Death**: Timer counts down from 1.000s. Tapping deducts remaining time from `maxTime` (the new ceiling), resetting the timer. Missing zero ends the game.
-- **One Tap**: Two-tap cycle — first tap stops the clock and scores, second tap (after a 2s lockout) triggers a 3-2-1 countdown before the next round. Three lives; missing a round costs a life.
+One unified mode. The timer counts down from 1.000s. Tapping scores the current time remaining and deducts it from `maxTime` (the new ceiling). Player has 3 lives — hitting zero costs a life; losing all 3 ends the game.
+
+After each tap:
+1. 400ms freeze (timer pauses, tap registered)
+2. Bounce animation: timer fills UP to new `maxTime` if tap was good (< 50% remaining), or shrinks DOWN if tap was early (> 50% remaining)
+3. 400ms pause after animation
+4. Countdown resumes
+
+The ring and bounce animations are always on (no toggles). "TOO EARLY!" appears above the timer on early taps. The timer text shifts orange below 0.300s and red below 0.100s.
 
 ### Scoring tiers
 
@@ -38,7 +45,7 @@ All game state is module-level variables (no class, no reactive framework). `req
 
 ### localStorage keys
 
-All prefixed `timedebt_`: `userid`, `initials`, `instructions_seen`, `mode`, `ring`, `best_YYYY-MM` (monthly personal best), `submitted_YYYY-MM` (one submission allowed per month).
+All prefixed `timedebt_`: `userid`, `initials`, `instructions_seen`, `best_YYYY-MM` (monthly personal best), `submitted_YYYY-MM` (one submission allowed per month).
 
 ### Pending integrations
 

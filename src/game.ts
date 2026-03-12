@@ -549,8 +549,9 @@ function handleSuddenDeathTap(): void {
         maxTime = maxTime - debt;
         updateMaxDisplay();
 
+        const postAnimPause = debt > maxTime ? 1000 : 400; // early tap if debt > new maxTime
         await animateFillUp(maxTime);
-        await new Promise<void>(resolve => setTimeout(resolve, 400));
+        await new Promise<void>(resolve => setTimeout(resolve, postAnimPause));
 
         isRunning = true;
         lastFrameTime = 0;
