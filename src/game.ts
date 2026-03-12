@@ -12,13 +12,21 @@ let isReadySetGo: boolean = false;
 let isShrinking: boolean = false;
 let streak: number = 0;
 
-// Score tiers
+// Score tiers (counts)
 let perfects: number = 0;
 let greats: number = 0;
 let goods: number = 0;
 let fines: number = 0;
 let poors: number = 0;
 let bads: number = 0;
+
+// Actual points earned per tier (after streak multiplier)
+let perfectPoints: number = 0;
+let greatPoints: number = 0;
+let goodPoints: number = 0;
+let finePoints: number = 0;
+let poorPoints: number = 0;
+let badPoints: number = 0;
 
 // Point values
 const POINTS = {
@@ -261,6 +269,13 @@ function classifyPoint(remaining: number): { tierLabel: string; multiplier: numb
     const points = basePoints * multiplier;
     score += points;
 
+    if (tierLabel === 'PERFECT')     perfectPoints += points;
+    else if (tierLabel === 'GREAT')  greatPoints   += points;
+    else if (tierLabel === 'GOOD')   goodPoints    += points;
+    else if (tierLabel === 'FINE')   finePoints    += points;
+    else if (tierLabel === 'POOR')   poorPoints    += points;
+    else                             badPoints     += points;
+
     updateTierScoreboard();
     flashTierRow(tierLabel);
     return { tierLabel, multiplier, points };
@@ -269,12 +284,12 @@ function classifyPoint(remaining: number): { tierLabel: string; multiplier: numb
 // Update all rows in the tier scoreboard
 function updateTierScoreboard(): void {
     const data = [
-        { tier: 'PERFECT', count: perfects, pts: perfects * POINTS.perfect },
-        { tier: 'GREAT',   count: greats,   pts: greats   * POINTS.great },
-        { tier: 'GOOD',    count: goods,    pts: goods    * POINTS.good },
-        { tier: 'FINE',    count: fines,    pts: fines    * POINTS.fine },
-        { tier: 'POOR',    count: poors,    pts: poors    * POINTS.poor },
-        { tier: 'BAD',     count: bads,     pts: bads     * POINTS.bad },
+        { tier: 'PERFECT', count: perfects, pts: perfectPoints },
+        { tier: 'GREAT',   count: greats,   pts: greatPoints },
+        { tier: 'GOOD',    count: goods,    pts: goodPoints },
+        { tier: 'FINE',    count: fines,    pts: finePoints },
+        { tier: 'POOR',    count: poors,    pts: poorPoints },
+        { tier: 'BAD',     count: bads,     pts: badPoints },
     ];
     for (const { tier, count, pts } of data) {
         const row = tierScoreboard.querySelector(`[data-tier="${tier}"]`) as HTMLElement | null;
@@ -306,6 +321,12 @@ function resetGame(): void {
     fines = 0;
     poors = 0;
     bads = 0;
+    perfectPoints = 0;
+    greatPoints = 0;
+    goodPoints = 0;
+    finePoints = 0;
+    poorPoints = 0;
+    badPoints = 0;
     isRunning = false;
     lastFrameTime = 0;
     lives = 3;
@@ -398,6 +419,10 @@ async function handleSuddenDeathLifeLost(): Promise<void> {
         endGame();
         return;
     }
+
+    // Reset streak on life loss
+    streak = 0;
+    updateMultiplierDisplay(1);
 
     // Show LIFE LOST for 1.5 seconds
     lifeLost.classList.remove('hidden');

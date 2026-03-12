@@ -14,6 +14,12 @@ declare let goods: number;
 declare let fines: number;
 declare let poors: number;
 declare let bads: number;
+declare let perfectPoints: number;
+declare let greatPoints: number;
+declare let goodPoints: number;
+declare let finePoints: number;
+declare let poorPoints: number;
+declare let badPoints: number;
 declare const POINTS: {
     perfect: number;
     great: number;
