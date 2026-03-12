@@ -387,31 +387,36 @@ function handleTimerZero(): void {
     handleSuddenDeathLifeLost();
 }
 
+// Show READY/SET/GO countdown and resolve when complete
+function showReadySetGo(): Promise<void> {
+    return new Promise((resolve) => {
+        countdown.classList.remove('hidden');
+        countdown.textContent = 'READY';
+        setTimeout(() => {
+            countdown.textContent = 'SET';
+            setTimeout(() => {
+                countdown.textContent = 'GO!';
+                setTimeout(() => {
+                    countdown.classList.add('hidden');
+                    resolve();
+                }, 400);
+            }, 800);
+        }, 800);
+    });
+}
+
 // Start ready-set-go sequence for initial game start
-function startReadySetGo(): void {
+async function startReadySetGo(): Promise<void> {
     isReadySetGo = true;
     instruction.classList.add('hidden');
-    countdown.classList.remove('hidden');
-    countdown.textContent = 'READY';
-
-    setTimeout(() => {
-        countdown.textContent = 'SET';
-
-        setTimeout(() => {
-            countdown.textContent = 'GO!';
-
-            setTimeout(() => {
-                countdown.classList.add('hidden');
-                isReadySetGo = false;
-                instruction.textContent = 'tap anywhere';
-                instruction.classList.remove('hidden');
-                isRunning = true;
-                lastFrameTime = 0;
-                updateMaxDisplay();
-                requestAnimationFrame(gameLoop);
-            }, 400);
-        }, 800);
-    }, 800);
+    await showReadySetGo();
+    isReadySetGo = false;
+    instruction.textContent = 'tap anywhere';
+    instruction.classList.remove('hidden');
+    isRunning = true;
+    lastFrameTime = 0;
+    updateMaxDisplay();
+    requestAnimationFrame(gameLoop);
 }
 
 // Go to start screen (pre-game)
@@ -545,15 +550,16 @@ function handleSuddenDeathTap(): void {
     showDebt(debt);
     if (debt > maxTime * 0.5) showTooEarly();
 
-    // 400ms freeze, then apply debt and resume
+    // 400ms freeze, then apply debt, run fill-up and READY/SET/GO in parallel, then resume
     setTimeout(async () => {
         maxTime = maxTime - debt;
         updateMaxDisplay();
+        instruction.classList.add('hidden');
 
-        const postAnimPause = debt > maxTime ? 1000 : 400; // early tap if debt > new maxTime
-        await animateFillUp(maxTime);
-        await new Promise<void>(resolve => setTimeout(resolve, postAnimPause));
+        await Promise.all([animateFillUp(maxTime), showReadySetGo()]);
 
+        instruction.textContent = 'tap anywhere';
+        instruction.classList.remove('hidden');
         isRunning = true;
         lastFrameTime = 0;
         requestAnimationFrame(gameLoop);
