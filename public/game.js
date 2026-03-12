@@ -285,8 +285,14 @@ function resetGame() {
     maxDisplay.classList.add('hidden');
     lifeLost.classList.add('hidden');
     timerDisplay.classList.remove('timer-shrinking');
+    timerRing.style.setProperty('--ring-thickness', '4px');
     updateTierScoreboard();
     updateHeartsDisplay();
+}
+// Update ring thickness based on tap count (4px at tap 1, +1.6px per tap, max 36px)
+function updateRingThickness() {
+    const thickness = Math.min(4 + (taps - 1) * 1.6, 36);
+    timerRing.style.setProperty('--ring-thickness', `${thickness}px`);
 }
 // Update the timer ring visualization
 function updateRing() {
@@ -513,6 +519,7 @@ function handleSuddenDeathTap() {
     // Freeze timer immediately so the tap feels like it lands
     isRunning = false;
     taps++;
+    updateRingThickness();
     const debt = timeRemaining;
     const tierLabel = classifyPoint(debt);
     triggerFlash(tierLabel);

@@ -80,6 +80,7 @@ declare function classifyPoint(remaining: number): string;
 declare function updateTierScoreboard(): void;
 declare function flashTierRow(tierLabel: string): void;
 declare function resetGame(): void;
+declare function updateRingThickness(): void;
 declare function updateRing(): void;
 declare function updateDisplay(): void;
 declare function gameLoop(currentTime: number): void;
