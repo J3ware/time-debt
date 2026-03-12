@@ -264,8 +264,28 @@ body {
     animation: tapFlash 150ms ease-out forwards;
 }
 
+#tap-flash.flash-perfect {
+    background: #ffd700;
+    animation: tapFlashPerfect 250ms ease-out forwards;
+}
+
+#tap-flash.flash-great {
+    background: #4ade80;
+    animation: tapFlashGreat 200ms ease-out forwards;
+}
+
 @keyframes tapFlash {
     0%   { opacity: 0.45; }
+    100% { opacity: 0; }
+}
+
+@keyframes tapFlashPerfect {
+    0%   { opacity: 0.6; }
+    100% { opacity: 0; }
+}
+
+@keyframes tapFlashGreat {
+    0%   { opacity: 0.5; }
     100% { opacity: 0; }
 }
 

@@ -193,7 +193,7 @@ function updateHeartsDisplay() {
         }
     });
 }
-// Classify a point based on remaining time and add points
+// Classify a point based on remaining time, add points, and return the tier label
 function classifyPoint(remaining) {
     let tierLabel;
     if (remaining <= 0.005) {
@@ -228,6 +228,7 @@ function classifyPoint(remaining) {
     }
     updateTierScoreboard();
     flashTierRow(tierLabel);
+    return tierLabel;
 }
 // Update all rows in the tier scoreboard
 function updateTierScoreboard() {
@@ -413,11 +414,19 @@ function handleGameplayTap(e) {
         return;
     handleSuddenDeathTap();
 }
-// Brief full-screen flash to confirm a tap registered
-function triggerFlash() {
-    tapFlash.classList.remove('flash');
+// Brief full-screen flash to confirm a tap registered; color varies by tier
+function triggerFlash(tier) {
+    tapFlash.classList.remove('flash', 'flash-perfect', 'flash-great');
     void tapFlash.offsetWidth; // force reflow to restart animation
-    tapFlash.classList.add('flash');
+    if (tier === 'PERFECT') {
+        tapFlash.classList.add('flash-perfect');
+    }
+    else if (tier === 'GREAT') {
+        tapFlash.classList.add('flash-great');
+    }
+    else {
+        tapFlash.classList.add('flash');
+    }
 }
 // Show "TOO EARLY!" above the timer for early taps
 function showTooEarly() {
@@ -494,15 +503,16 @@ function handleSuddenDeathTap() {
         return;
     // Freeze timer immediately so the tap feels like it lands
     isRunning = false;
-    triggerFlash();
     taps++;
     const debt = timeRemaining;
-    classifyPoint(debt);
+    const tierLabel = classifyPoint(debt);
+    triggerFlash(tierLabel);
     updateDisplay();
     showDebt(debt);
     if (debt > maxTime * 0.5)
         showTooEarly();
-    // 400ms freeze, then apply debt, run fill-up and READY/SET/GO in parallel, then resume
+    const freezeMs = tierLabel === 'PERFECT' ? 1400 : tierLabel === 'GREAT' ? 900 : 400;
+    // Freeze, then apply debt, run fill-up and READY/SET/GO in parallel, then resume
     setTimeout(async () => {
         maxTime = maxTime - debt;
         updateMaxDisplay();
@@ -513,7 +523,7 @@ function handleSuddenDeathTap() {
         isRunning = true;
         lastFrameTime = 0;
         requestAnimationFrame(gameLoop);
-    }, 400);
+    }, freezeMs);
 }
 // End the game - show game over screen, then transition to score screen
 function endGame() {
