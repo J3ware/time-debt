@@ -55,6 +55,7 @@ const timerRing = document.getElementById('timer-ring');
 const gameplayHearts = document.getElementById('gameplay-hearts');
 const instruction = document.getElementById('instruction');
 const countdown = document.getElementById('countdown');
+const tierScoreboard = document.getElementById('tier-scoreboard');
 const timerContainer = document.getElementById('timer-container');
 const maxDisplay = document.getElementById('max-display');
 const lifeLost = document.getElementById('life-lost');
@@ -194,30 +195,67 @@ function updateHeartsDisplay() {
 }
 // Classify a point based on remaining time and add points
 function classifyPoint(remaining) {
+    let tierLabel;
     if (remaining <= 0.005) {
         perfects++;
         score += POINTS.perfect;
+        tierLabel = 'PERFECT';
     }
     else if (remaining <= 0.050) {
         greats++;
         score += POINTS.great;
+        tierLabel = 'GREAT';
     }
     else if (remaining <= 0.100) {
         goods++;
         score += POINTS.good;
+        tierLabel = 'GOOD';
     }
     else if (remaining <= 0.200) {
         fines++;
         score += POINTS.fine;
+        tierLabel = 'FINE';
     }
     else if (remaining <= 0.350) {
         poors++;
         score += POINTS.poor;
+        tierLabel = 'POOR';
     }
-    else if (remaining <= 0.500) {
+    else {
         bads++;
         score += POINTS.bad;
+        tierLabel = 'BAD';
     }
+    updateTierScoreboard();
+    flashTierRow(tierLabel);
+}
+// Update all rows in the tier scoreboard
+function updateTierScoreboard() {
+    const data = [
+        { tier: 'PERFECT', count: perfects, pts: perfects * POINTS.perfect },
+        { tier: 'GREAT', count: greats, pts: greats * POINTS.great },
+        { tier: 'GOOD', count: goods, pts: goods * POINTS.good },
+        { tier: 'FINE', count: fines, pts: fines * POINTS.fine },
+        { tier: 'POOR', count: poors, pts: poors * POINTS.poor },
+        { tier: 'BAD', count: bads, pts: bads * POINTS.bad },
+    ];
+    for (const { tier, count, pts } of data) {
+        const row = tierScoreboard.querySelector(`[data-tier="${tier}"]`);
+        if (!row)
+            continue;
+        row.querySelector('.tier-count').textContent = count.toString();
+        row.querySelector('.tier-total').textContent = pts.toString();
+    }
+}
+// Briefly flash a tier row when it scores
+function flashTierRow(tierLabel) {
+    const row = tierScoreboard.querySelector(`[data-tier="${tierLabel}"]`);
+    if (!row)
+        return;
+    row.classList.remove('tier-flash');
+    void row.offsetWidth;
+    row.classList.add('tier-flash');
+    setTimeout(() => row.classList.remove('tier-flash'), 400);
 }
 // Reset game state
 function resetGame() {
@@ -245,6 +283,7 @@ function resetGame() {
     maxDisplay.classList.add('hidden');
     lifeLost.classList.add('hidden');
     timerDisplay.classList.remove('timer-shrinking');
+    updateTierScoreboard();
     updateHeartsDisplay();
 }
 // Update the timer ring visualization
@@ -367,20 +406,6 @@ function handleGameplayTap(e) {
         return;
     handleSuddenDeathTap();
 }
-// Return tier label and points for a given remaining time
-function getTierInfo(remaining) {
-    if (remaining <= 0.005)
-        return { label: 'PERFECT', points: POINTS.perfect };
-    if (remaining <= 0.050)
-        return { label: 'GREAT', points: POINTS.great };
-    if (remaining <= 0.100)
-        return { label: 'GOOD', points: POINTS.good };
-    if (remaining <= 0.200)
-        return { label: 'FINE', points: POINTS.fine };
-    if (remaining <= 0.350)
-        return { label: 'POOR', points: POINTS.poor };
-    return { label: 'BAD', points: POINTS.bad };
-}
 // Brief full-screen flash to confirm a tap registered
 function triggerFlash() {
     tapFlash.classList.remove('flash');
@@ -399,25 +424,11 @@ function showTooEarly() {
     gameplayScreen.appendChild(el);
     el.addEventListener('animationend', () => el.remove());
 }
-const TIER_COLORS = {
-    PERFECT: '#ffd700',
-    GREAT: '#4ade80',
-    GOOD: '#86efac',
-    FINE: '#ffffff',
-    POOR: '#fb923c',
-    BAD: '#ef4444',
-};
-// Spawn a floating debt popup for this tap (stacks with concurrent popups)
-function showDebt(amount, tierLabel, points) {
-    var _a;
-    const tierColor = (_a = TIER_COLORS[tierLabel]) !== null && _a !== void 0 ? _a : '#e0e0e0';
+// Spawn a floating debt popup showing only the time deducted
+function showDebt(amount) {
     const popup = document.createElement('div');
     popup.className = 'debt-popup';
-    popup.innerHTML = `
-        <div class="debt-tier" style="color:${tierColor}">${tierLabel}</div>
-        <div class="debt-points">+${points}</div>
-        <div class="debt-amount">-${amount.toFixed(3)}</div>
-    `;
+    popup.innerHTML = `<div class="debt-amount">-${amount.toFixed(3)}</div>`;
     // Anchor to the bottom-center of the timer container
     const containerRect = timerContainer.getBoundingClientRect();
     const screenRect = gameplayScreen.getBoundingClientRect();
@@ -479,10 +490,9 @@ function handleSuddenDeathTap() {
     triggerFlash();
     taps++;
     const debt = timeRemaining;
-    const tier = getTierInfo(debt);
     classifyPoint(debt);
     updateDisplay();
-    showDebt(debt, tier.label, tier.points);
+    showDebt(debt);
     if (debt > maxTime * 0.5)
         showTooEarly();
     // 400ms freeze, then apply debt and resume

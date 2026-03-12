@@ -64,6 +64,7 @@ const timerRing = document.getElementById('timer-ring') as HTMLElement;
 const gameplayHearts = document.getElementById('gameplay-hearts') as HTMLElement;
 const instruction = document.getElementById('instruction') as HTMLElement;
 const countdown = document.getElementById('countdown') as HTMLElement;
+const tierScoreboard = document.getElementById('tier-scoreboard') as HTMLElement;
 const timerContainer = document.getElementById('timer-container') as HTMLElement;
 const maxDisplay = document.getElementById('max-display') as HTMLElement;
 const lifeLost = document.getElementById('life-lost') as HTMLElement;
@@ -224,25 +225,50 @@ function updateHeartsDisplay(): void {
 
 // Classify a point based on remaining time and add points
 function classifyPoint(remaining: number): void {
+    let tierLabel: string;
     if (remaining <= 0.005) {
-        perfects++;
-        score += POINTS.perfect;
+        perfects++; score += POINTS.perfect; tierLabel = 'PERFECT';
     } else if (remaining <= 0.050) {
-        greats++;
-        score += POINTS.great;
+        greats++;   score += POINTS.great;   tierLabel = 'GREAT';
     } else if (remaining <= 0.100) {
-        goods++;
-        score += POINTS.good;
+        goods++;    score += POINTS.good;    tierLabel = 'GOOD';
     } else if (remaining <= 0.200) {
-        fines++;
-        score += POINTS.fine;
+        fines++;    score += POINTS.fine;    tierLabel = 'FINE';
     } else if (remaining <= 0.350) {
-        poors++;
-        score += POINTS.poor;
-    } else if (remaining <= 0.500) {
-        bads++;
-        score += POINTS.bad;
+        poors++;    score += POINTS.poor;    tierLabel = 'POOR';
+    } else {
+        bads++;     score += POINTS.bad;     tierLabel = 'BAD';
     }
+    updateTierScoreboard();
+    flashTierRow(tierLabel);
+}
+
+// Update all rows in the tier scoreboard
+function updateTierScoreboard(): void {
+    const data = [
+        { tier: 'PERFECT', count: perfects, pts: perfects * POINTS.perfect },
+        { tier: 'GREAT',   count: greats,   pts: greats   * POINTS.great },
+        { tier: 'GOOD',    count: goods,    pts: goods    * POINTS.good },
+        { tier: 'FINE',    count: fines,    pts: fines    * POINTS.fine },
+        { tier: 'POOR',    count: poors,    pts: poors    * POINTS.poor },
+        { tier: 'BAD',     count: bads,     pts: bads     * POINTS.bad },
+    ];
+    for (const { tier, count, pts } of data) {
+        const row = tierScoreboard.querySelector(`[data-tier="${tier}"]`) as HTMLElement | null;
+        if (!row) continue;
+        (row.querySelector('.tier-count') as HTMLElement).textContent = count.toString();
+        (row.querySelector('.tier-total') as HTMLElement).textContent = pts.toString();
+    }
+}
+
+// Briefly flash a tier row when it scores
+function flashTierRow(tierLabel: string): void {
+    const row = tierScoreboard.querySelector(`[data-tier="${tierLabel}"]`) as HTMLElement | null;
+    if (!row) return;
+    row.classList.remove('tier-flash');
+    void row.offsetWidth;
+    row.classList.add('tier-flash');
+    setTimeout(() => row.classList.remove('tier-flash'), 400);
 }
 
 // Reset game state
@@ -272,7 +298,7 @@ function resetGame(): void {
     maxDisplay.classList.add('hidden');
     lifeLost.classList.add('hidden');
     timerDisplay.classList.remove('timer-shrinking');
-    
+    updateTierScoreboard();
     updateHeartsDisplay();
 }
 
@@ -416,16 +442,6 @@ function handleGameplayTap(e: Event): void {
     handleSuddenDeathTap();
 }
 
-// Return tier label and points for a given remaining time
-function getTierInfo(remaining: number): { label: string; points: number } {
-    if (remaining <= 0.005) return { label: 'PERFECT', points: POINTS.perfect };
-    if (remaining <= 0.050) return { label: 'GREAT',   points: POINTS.great };
-    if (remaining <= 0.100) return { label: 'GOOD',    points: POINTS.good };
-    if (remaining <= 0.200) return { label: 'FINE',    points: POINTS.fine };
-    if (remaining <= 0.350) return { label: 'POOR',    points: POINTS.poor };
-    return                         { label: 'BAD',     points: POINTS.bad };
-}
-
 // Brief full-screen flash to confirm a tap registered
 function triggerFlash(): void {
     tapFlash.classList.remove('flash');
@@ -448,25 +464,11 @@ function showTooEarly(): void {
     el.addEventListener('animationend', () => el.remove());
 }
 
-const TIER_COLORS: Record<string, string> = {
-    PERFECT: '#ffd700',
-    GREAT:   '#4ade80',
-    GOOD:    '#86efac',
-    FINE:    '#ffffff',
-    POOR:    '#fb923c',
-    BAD:     '#ef4444',
-};
-
-// Spawn a floating debt popup for this tap (stacks with concurrent popups)
-function showDebt(amount: number, tierLabel: string, points: number): void {
-    const tierColor = TIER_COLORS[tierLabel] ?? '#e0e0e0';
+// Spawn a floating debt popup showing only the time deducted
+function showDebt(amount: number): void {
     const popup = document.createElement('div');
     popup.className = 'debt-popup';
-    popup.innerHTML = `
-        <div class="debt-tier" style="color:${tierColor}">${tierLabel}</div>
-        <div class="debt-points">+${points}</div>
-        <div class="debt-amount">-${amount.toFixed(3)}</div>
-    `;
+    popup.innerHTML = `<div class="debt-amount">-${amount.toFixed(3)}</div>`;
 
     // Anchor to the bottom-center of the timer container
     const containerRect = timerContainer.getBoundingClientRect();
@@ -538,10 +540,9 @@ function handleSuddenDeathTap(): void {
     triggerFlash();
     taps++;
     const debt = timeRemaining;
-    const tier = getTierInfo(debt);
     classifyPoint(debt);
     updateDisplay();
-    showDebt(debt, tier.label, tier.points);
+    showDebt(debt);
     if (debt > maxTime * 0.5) showTooEarly();
 
     // 400ms freeze, then apply debt and resume
