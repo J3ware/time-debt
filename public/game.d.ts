@@ -93,6 +93,7 @@ declare function classifyPoint(remaining: number): {
 declare function updateTierScoreboard(): void;
 declare function flashTierRow(tierLabel: string): void;
 declare function resetGame(): void;
+declare function updateGameplayBackground(): void;
 declare function updateRingThickness(): void;
 declare function updateRing(): void;
 declare function updateDisplay(): void;

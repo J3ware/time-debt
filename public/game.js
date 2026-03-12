@@ -334,10 +334,28 @@ function resetGame() {
     lifeLost.classList.add('hidden');
     timerDisplay.classList.remove('timer-shrinking');
     timerRing.style.setProperty('--ring-thickness', '4px');
+    gameplayScreen.style.backgroundColor = '#0a0a12';
     multiplierDisplay.classList.add('hidden');
     multiplierDisplay.classList.remove('mult-5x');
     updateTierScoreboard();
     updateHeartsDisplay();
+}
+// Shift gameplay background color based on tap count
+// tap 0: #0a0a12 (dark blue-gray) → tap 10: #1a0a2e (deep purple) → tap 20+: #2a0a0a (dark red)
+function updateGameplayBackground() {
+    const t = Math.min(taps, 20);
+    let r, b;
+    if (t <= 10) {
+        const s = t / 10;
+        r = Math.round(0x0a + s * (0x1a - 0x0a)); // 10 → 26
+        b = Math.round(0x12 + s * (0x2e - 0x12)); // 18 → 46
+    }
+    else {
+        const s = (t - 10) / 10;
+        r = Math.round(0x1a + s * (0x2a - 0x1a)); // 26 → 42
+        b = Math.round(0x2e + s * (0x0a - 0x2e)); // 46 → 10
+    }
+    gameplayScreen.style.backgroundColor = `rgb(${r},10,${b})`;
 }
 // Update ring thickness based on tap count (4px at tap 1, +1.6px per tap, max 36px)
 function updateRingThickness() {
@@ -406,9 +424,9 @@ async function handleSuddenDeathLifeLost() {
     instruction.classList.add('hidden');
     await new Promise(resolve => setTimeout(resolve, 1500));
     lifeLost.classList.add('hidden');
-    // Fill timer back up to maxTime, then pause before resuming
+    // Fill timer back up to maxTime, then run READY/SET/GO before resuming
     await animateFillUp(maxTime);
-    await new Promise(resolve => setTimeout(resolve, 400));
+    await showReadySetGo();
     instruction.textContent = 'tap anywhere';
     instruction.classList.remove('hidden');
     isRunning = true;
@@ -458,6 +476,7 @@ function goToStartScreen() {
 // Start the game (from start screen tap)
 function startGame() {
     showScreen(gameplayScreen);
+    gameplayScreen.style.backgroundColor = '#0a0a12';
     updateHeartsVisibility();
     updateDisplay();
     startReadySetGo();
@@ -599,6 +618,7 @@ function handleSuddenDeathTap() {
     isRunning = false;
     taps++;
     updateRingThickness();
+    updateGameplayBackground();
     const debt = timeRemaining;
     const { tierLabel, multiplier, points } = classifyPoint(debt);
     triggerFlash(tierLabel);
